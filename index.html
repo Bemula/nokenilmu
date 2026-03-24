@@ -1,0 +1,2266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NokenIlmu">
+<meta name="theme-color" content="#0f1b2d">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>NokenIlmu</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyCg8TEh7O0YL9MMjFZfa6io8zADtoMo8Vc",
+    authDomain: "mathblast-451d5.firebaseapp.com",
+    projectId: "mathblast-451d5",
+    storageBucket: "mathblast-451d5.firebasestorage.app",
+    messagingSenderId: "36969246186",
+    appId: "1:36969246186:web:8c254b552a3072edfb1693"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window._db=db; window._doc=doc; window._getDoc=getDoc;
+  window._setDoc=setDoc; window._collection=collection;
+  window._getDocs=getDocs; window._deleteDoc=deleteDoc;
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+<style>
+:root{
+  --bg:#0f1b2d;--card:#162236;--card2:#1c2d45;
+  --accent:#f7c948;--accent2:#ff6b6b;
+  --green:#4ecb71;--blue:#4fa3e0;--purple:#a78bfa;
+  --orange:#ff9a3c;--teal:#2dd4bf;
+  --text:#e8f0fe;--muted:#7a92b0;
+  --radius:18px;--shadow:0 8px 32px rgba(0,0,0,0.4);
+  --sidebar:72px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);font-family:'Nunito',sans-serif;color:var(--text);
+  background-image:radial-gradient(ellipse at 20% 10%,rgba(79,163,224,0.12) 0%,transparent 50%),
+  radial-gradient(ellipse at 80% 80%,rgba(167,139,250,0.10) 0%,transparent 50%);}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--dur,3s) ease-in-out infinite;animation-delay:var(--delay,0s);opacity:0.4;}
+@keyframes twinkle{0%,100%{opacity:0.2;transform:scale(1);}50%{opacity:0.9;transform:scale(1.4);}}
+
+/* ── SCREENS ── */
+.screen{display:none;position:fixed;inset:0;z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:14px;padding:20px 16px;overflow-y:auto;}
+.screen.active{display:flex;}
+
+/* ── AUTH ── */
+.auth-box{width:100%;max-width:400px;background:var(--card);border-radius:var(--radius);border:1px solid rgba(255,255,255,0.07);box-shadow:var(--shadow);padding:28px 22px;display:flex;flex-direction:column;gap:14px;position:relative;}
+.auth-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--orange),var(--accent2));border-radius:3px 3px 0 0;}
+.auth-logo{font-family:'Fredoka One',cursive;font-size:2.2rem;background:linear-gradient(135deg,var(--accent) 30%,var(--orange) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;filter:drop-shadow(0 2px 8px rgba(247,201,72,0.35));}
+.auth-sub{text-align:center;font-size:0.75rem;color:var(--muted);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-top:-6px;}
+.auth-label{font-size:0.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;}
+.auth-input{background:var(--card2);border:2px solid rgba(255,255,255,0.1);border-radius:12px;padding:11px 13px;font-family:'Nunito',sans-serif;font-size:0.95rem;color:var(--text);width:100%;outline:none;transition:border-color 0.2s;}
+.auth-input:focus{border-color:var(--blue);}
+.auth-btn{background:linear-gradient(135deg,var(--accent),var(--orange));border:none;border-radius:12px;padding:12px;font-family:'Fredoka One',cursive;font-size:1.1rem;color:#1a1000;cursor:pointer;box-shadow:0 4px 14px rgba(247,201,72,0.3);transition:transform 0.12s;}
+.auth-btn:active{transform:scale(0.96);}
+.auth-btn.secondary{background:rgba(255,255,255,0.06);color:var(--muted);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.82rem;box-shadow:none;border:1.5px solid rgba(255,255,255,0.08);}
+.auth-err{color:var(--accent2);font-size:0.78rem;font-weight:700;text-align:center;min-height:18px;}
+.auth-ok{color:var(--green);font-size:0.78rem;font-weight:700;text-align:center;min-height:18px;}
+.auth-divider{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:0.7rem;}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.08);}
+
+/* Role picker */
+.role-row{display:flex;gap:10px;width:100%;}
+.role-btn{flex:1;padding:14px 8px;border-radius:14px;border:2px solid rgba(255,255,255,0.08);background:var(--card2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all 0.18s;font-family:'Nunito',sans-serif;}
+.role-btn .rb-icon{font-size:1.8rem;}
+.role-btn .rb-label{font-size:0.75rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
+.role-btn.active-student{border-color:var(--blue);background:rgba(79,163,224,0.12);box-shadow:0 0 14px rgba(79,163,224,0.2);}
+.role-btn.active-teacher{border-color:var(--purple);background:rgba(167,139,250,0.12);box-shadow:0 0 14px rgba(167,139,250,0.2);}
+.role-btn.active-student .rb-label{color:var(--blue);}
+.role-btn.active-teacher .rb-label{color:var(--purple);}
+
+/* Subject picker */
+.subject-pick{display:flex;gap:10px;width:100%;max-width:400px;}
+.subj-btn{flex:1;padding:22px 12px;border-radius:16px;border:2px solid rgba(255,255,255,0.08);background:var(--card);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all 0.2s;font-family:'Nunito',sans-serif;}
+.subj-btn .sj-icon{font-size:2.5rem;}
+.subj-btn .sj-label{font-size:0.9rem;font-weight:900;color:var(--text);}
+.subj-btn .sj-desc{font-size:0.65rem;color:var(--muted);font-weight:600;text-align:center;}
+.subj-btn.math{border-color:var(--accent);background:rgba(247,201,72,0.08);box-shadow:0 0 18px rgba(247,201,72,0.15);}
+.subj-btn.lang{border-color:var(--teal);background:rgba(45,212,191,0.08);box-shadow:0 0 18px rgba(45,212,191,0.15);}
+.subj-btn:active{transform:scale(0.95);}
+.subj-title{font-family:'Fredoka One',cursive;font-size:1.6rem;background:linear-gradient(135deg,var(--accent),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.subj-sub{font-size:0.72rem;color:var(--muted);font-weight:600;}
+.sync-badge{display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.7rem;font-weight:700;padding:6px 12px;border-radius:10px;background:rgba(78,203,113,0.12);color:var(--green);border:1px solid rgba(78,203,113,0.2);}
+.sync-badge.connecting{background:rgba(79,163,224,0.12);color:var(--blue);border-color:rgba(79,163,224,0.2);}
+
+/* ── FULL SCREEN GAME ── */
+#screen-game,#screen-lang{
+  display:none;position:fixed;inset:0;z-index:5;
+  flex-direction:row;padding:0;overflow:hidden;
+}
+#screen-game.active,#screen-lang.active{display:flex;}
+
+/* SIDEBAR */
+.game-sidebar{width:var(--sidebar);flex-shrink:0;background:var(--card);border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:3px;overflow-y:auto;overflow-x:hidden;position:relative;z-index:2;}
+.sb-logo{font-family:'Fredoka One',cursive;font-size:0.95rem;background:linear-gradient(135deg,var(--accent),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;line-height:1;padding:4px 0 6px;}
+.mode-icon-btn{width:52px;height:52px;border-radius:14px;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;transition:all 0.18s;background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:800;}
+.mode-icon-btn .mi-emoji{font-size:1.35rem;line-height:1;}
+.mode-icon-btn .mi-label{font-size:0.46rem;text-transform:uppercase;letter-spacing:0.06em;font-weight:800;}
+.mode-icon-btn.active-add{background:rgba(78,203,113,0.18);color:var(--green);box-shadow:0 0 12px rgba(78,203,113,0.25);}
+.mode-icon-btn.active-sub{background:rgba(255,107,107,0.18);color:var(--accent2);box-shadow:0 0 12px rgba(255,107,107,0.25);}
+.mode-icon-btn.active-mul{background:rgba(79,163,224,0.18);color:var(--blue);box-shadow:0 0 12px rgba(79,163,224,0.25);}
+.mode-icon-btn.active-div{background:rgba(167,139,250,0.18);color:var(--purple);box-shadow:0 0 12px rgba(167,139,250,0.25);}
+.mode-icon-btn.active-mix{background:rgba(247,201,72,0.18);color:var(--accent);box-shadow:0 0 12px rgba(247,201,72,0.25);}
+.mode-icon-btn.active-chart{background:rgba(45,212,191,0.18);color:var(--teal);box-shadow:0 0 12px rgba(45,212,191,0.25);}
+.mode-icon-btn.active-board{background:rgba(255,154,60,0.18);color:var(--orange);box-shadow:0 0 12px rgba(255,154,60,0.25);}
+.mode-icon-btn:hover:not([disabled]){background:rgba(255,255,255,0.07);}
+.mode-icon-btn[disabled]{opacity:0.18;cursor:not-allowed;}
+.mode-icon-btn:active:not([disabled]){transform:scale(0.91);}
+.sb-divider{width:40px;height:1px;background:rgba(255,255,255,0.07);margin:3px 0;}
+.sb-history{flex:1;width:100%;overflow-y:auto;padding:0 5px 5px;}
+.sh-title{font-size:0.48rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);text-align:center;padding:5px 0 3px;}
+.sh-entry{background:var(--card2);border-radius:7px;padding:4px 6px;margin-bottom:3px;}
+.sh-pts{font-family:'Fredoka One',cursive;font-size:0.88rem;color:var(--accent);line-height:1;}
+.sh-detail{font-size:0.48rem;color:var(--muted);margin-top:1px;}
+.sh-empty{font-size:0.52rem;color:var(--muted);text-align:center;padding:6px 0;}
+.sb-bottom{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;padding:5px 5px 7px;border-top:1px solid rgba(255,255,255,0.06);margin-top:auto;}
+.sb-icon-btn{width:52px;height:34px;border-radius:9px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.5rem;transition:all 0.15s;text-transform:uppercase;letter-spacing:0.04em;}
+.sb-icon-btn:active{transform:scale(0.93);}
+.sbi-teacher{background:rgba(167,139,250,0.15);color:var(--purple);border:1px solid rgba(167,139,250,0.25);}
+.sbi-home{background:rgba(79,163,224,0.15);color:var(--blue);border:1px solid rgba(79,163,224,0.25);}
+.sbi-logout{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid rgba(255,255,255,0.08);}
+
+/* MAIN AREA */
+.game-main{flex:1;min-width:0;display:flex;flex-direction:column;overflow-y:auto;padding:10px 12px 18px;gap:8px;align-items:center;}
+.user-bar{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:11px;padding:7px 12px;border:1px solid rgba(255,255,255,0.06);}
+.user-name{font-weight:900;font-size:0.82rem;}
+.sync-indicator{font-size:0.58rem;font-weight:700;padding:2px 7px;border-radius:20px;}
+.sync-indicator.synced{background:rgba(78,203,113,0.15);color:var(--green);}
+.sync-indicator.syncing{background:rgba(79,163,224,0.15);color:var(--blue);}
+.sync-indicator.offline{background:rgba(255,107,107,0.15);color:var(--accent2);}
+.user-grade-tag{font-size:0.62rem;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(167,139,250,0.15);color:var(--purple);}
+.game-header{text-align:center;}
+.logo{font-family:'Fredoka One',cursive;font-size:1.8rem;background:linear-gradient(135deg,var(--accent) 30%,var(--orange) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 2px 8px rgba(247,201,72,0.3));}
+.tagline{font-size:0.62rem;color:var(--muted);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;}
+
+/* Difficulty bar */
+.diff-bar{display:flex;gap:5px;width:100%;max-width:480px;}
+.diff-btn{flex:1;padding:7px 2px;border-radius:9px;border:1.5px solid rgba(255,255,255,0.08);background:var(--card);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.68rem;cursor:pointer;color:var(--muted);transition:all 0.2s;}
+.diff-btn.active-easy{border-color:var(--green);color:var(--green);background:rgba(78,203,113,0.12);}
+.diff-btn.active-medium{border-color:var(--accent);color:var(--accent);background:rgba(247,201,72,0.12);}
+.diff-btn.active-hard{border-color:var(--accent2);color:var(--accent2);background:rgba(255,107,107,0.12);}
+.diff-btn.active-explore{border-color:var(--teal);color:var(--teal);background:rgba(45,212,191,0.12);}
+
+/* Explore level indicator */
+.explore-bar{width:100%;max-width:480px;background:var(--card);border-radius:12px;padding:8px 12px;border:1px solid rgba(45,212,191,0.25);display:flex;align-items:center;gap:10px;}
+.explore-label{font-size:0.68rem;font-weight:800;color:var(--teal);white-space:nowrap;}
+.explore-track{flex:1;height:8px;background:var(--card2);border-radius:8px;overflow:hidden;}
+.explore-fill{height:100%;border-radius:8px;transition:width 0.4s ease,background 0.4s ease;}
+.explore-lvl{font-size:0.65rem;font-weight:900;color:var(--muted);white-space:nowrap;}
+
+/* Stats */
+.stats{display:flex;gap:6px;width:100%;max-width:480px;}
+.stat-box{flex:1;background:var(--card);border-radius:11px;padding:7px 4px;text-align:center;border:1px solid rgba(255,255,255,0.06);}
+.stat-label{font-size:0.52rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.07em;}
+.stat-value{font-size:1.25rem;font-weight:900;margin-top:1px;}
+.stat-value.score{color:var(--accent);}.stat-value.streak{color:var(--accent2);}.stat-value.timer{color:var(--blue);}
+
+/* Mode indicator */
+.mode-indicator{display:flex;align-items:center;gap:7px;padding:4px 14px;border-radius:20px;font-weight:800;font-size:0.75rem;}
+.mi-add{background:rgba(78,203,113,0.15);color:var(--green);}
+.mi-sub{background:rgba(255,107,107,0.15);color:var(--accent2);}
+.mi-mul{background:rgba(79,163,224,0.15);color:var(--blue);}
+.mi-div{background:rgba(167,139,250,0.15);color:var(--purple);}
+.mi-mix{background:rgba(247,201,72,0.15);color:var(--accent);}
+
+/* Question card */
+.question-card{width:100%;max-width:480px;background:var(--card);border-radius:var(--radius);border:1px solid rgba(255,255,255,0.07);box-shadow:var(--shadow);padding:16px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;overflow:hidden;}
+.question-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--orange),var(--accent2));}
+.op-badge{font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;padding:3px 11px;border-radius:20px;}
+.op-add{background:rgba(78,203,113,0.15);color:var(--green);}
+.op-sub{background:rgba(255,107,107,0.15);color:var(--accent2);}
+.op-mul{background:rgba(79,163,224,0.15);color:var(--blue);}
+.op-div{background:rgba(167,139,250,0.15);color:var(--purple);}
+.question-text{font-family:'Fredoka One',cursive;font-size:2.5rem;color:var(--text);text-align:center;line-height:1.2;}
+.question-text .op-symbol{color:var(--accent);margin:0 8px;}
+.question-text .eq{color:var(--muted);margin-left:8px;}
+.progress-wrap{width:100%;background:var(--card2);border-radius:7px;height:5px;overflow:hidden;}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:7px;transition:width 0.4s ease;}
+.progress-label{font-size:0.57rem;color:var(--muted);font-weight:700;text-align:right;margin-top:2px;}
+.answer-row{display:flex;gap:7px;width:100%;align-items:center;}
+.answer-input{flex:1;background:var(--card2);border:2px solid rgba(255,255,255,0.1);border-radius:11px;padding:9px 11px;font-family:'Fredoka One',cursive;font-size:1.6rem;color:var(--text);text-align:center;transition:border-color 0.2s,box-shadow 0.2s;user-select:none;-webkit-user-select:none;min-height:52px;display:flex;align-items:center;justify-content:center;}
+.answer-input.empty{color:var(--muted);}
+.answer-input.correct{border-color:var(--green);box-shadow:0 0 0 3px rgba(78,203,113,0.22);}
+.answer-input.wrong{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(255,107,107,0.22);animation:shake 0.4s ease;}
+.submit-btn{background:linear-gradient(135deg,var(--accent),var(--orange));border:none;border-radius:11px;padding:10px 16px;font-family:'Fredoka One',cursive;font-size:1.15rem;color:#1a1000;cursor:pointer;box-shadow:0 4px 12px rgba(247,201,72,0.3);}
+.submit-btn:active{transform:scale(0.94);}
+.feedback{font-size:0.85rem;font-weight:800;min-height:20px;text-align:center;}
+.feedback.correct{color:var(--green);}.feedback.wrong{color:var(--accent2);}
+
+/* Numpad */
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;max-width:480px;}
+.np-btn{padding:13px;border-radius:11px;border:1.5px solid rgba(255,255,255,0.08);background:var(--card2);font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--text);cursor:pointer;user-select:none;-webkit-user-select:none;}
+.np-btn:active{transform:scale(0.91);background:rgba(79,163,224,0.18);border-color:var(--blue);}
+.np-btn.del{color:var(--accent2);font-size:0.88rem;}.np-btn.neg{color:var(--purple);font-size:0.88rem;}
+.action-row{display:flex;width:100%;max-width:480px;}
+.btn-reset{flex:1;padding:9px;border-radius:10px;background:rgba(255,107,107,0.1);color:var(--accent2);border:1.5px solid rgba(255,107,107,0.2);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.78rem;cursor:pointer;}
+
+/* Ready screen */
+.ready-screen{width:100%;max-width:480px;background:var(--card);border-radius:var(--radius);border:1px solid rgba(255,255,255,0.07);box-shadow:var(--shadow);padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;position:relative;overflow:hidden;animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;}
+.ready-screen::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--orange),var(--accent2));}
+.ready-emoji{font-size:3rem;line-height:1;}
+.ready-title{font-family:'Fredoka One',cursive;font-size:1.8rem;background:linear-gradient(135deg,var(--accent),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ready-info{font-size:0.78rem;color:var(--muted);font-weight:700;background:var(--card2);padding:4px 13px;border-radius:20px;}
+.ready-rules{display:flex;flex-direction:column;gap:6px;width:100%;background:var(--card2);border-radius:13px;padding:12px 14px;}
+.rr-item{font-size:0.8rem;font-weight:700;color:var(--text);}
+.start-btn{background:linear-gradient(135deg,var(--green),#2ecc71);border:none;border-radius:13px;padding:13px 44px;font-family:'Fredoka One',cursive;font-size:1.3rem;color:#0a2412;cursor:pointer;box-shadow:0 4px 16px rgba(78,203,113,0.35);}
+.start-btn:active{transform:scale(0.95);}
+
+/* Result screen */
+.result-screen{width:100%;max-width:480px;background:var(--card);border-radius:var(--radius);padding:24px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:11px;border:1px solid rgba(255,255,255,0.07);box-shadow:var(--shadow);animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;}
+.result-emoji{font-size:2.8rem;}.result-title{font-family:'Fredoka One',cursive;font-size:1.7rem;background:linear-gradient(135deg,var(--accent),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.result-sub{color:var(--muted);font-weight:600;font-size:0.8rem;}
+.result-score{font-family:'Fredoka One',cursive;font-size:3.5rem;color:var(--accent);line-height:1;}
+.result-detail{display:flex;gap:7px;width:100%;}
+.rd-box{flex:1;background:var(--card2);border-radius:11px;padding:7px 5px;text-align:center;}
+.rd-label{font-size:0.52rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.07em;}
+.rd-val{font-size:1.1rem;font-weight:900;margin-top:2px;}
+.rd-sub{font-size:0.52rem;color:var(--muted);margin-top:1px;}
+.play-again{background:linear-gradient(135deg,var(--accent),var(--orange));border:none;border-radius:12px;padding:11px 28px;font-family:'Fredoka One',cursive;font-size:1.15rem;color:#1a1000;cursor:pointer;box-shadow:0 4px 12px rgba(247,201,72,0.3);}
+.play-again:active{transform:scale(0.96);}
+
+/* ── CHART PANEL ── */
+.chart-panel{width:100%;max-width:480px;background:var(--card);border-radius:var(--radius);border:1px solid rgba(255,255,255,0.07);box-shadow:var(--shadow);padding:16px 14px;display:flex;flex-direction:column;gap:10px;animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;}
+.cp-title{font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--teal);}
+.cp-tabs{display:flex;gap:5px;}
+.cp-tab{padding:5px 12px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.08);background:transparent;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.7rem;cursor:pointer;color:var(--muted);transition:all 0.2s;}
+.cp-tab.active{background:var(--teal);color:#0a2412;border-color:var(--teal);}
+.chart-wrap{position:relative;height:180px;width:100%;}
+.cp-empty{text-align:center;color:var(--muted);font-size:0.8rem;padding:40px 0;}
+
+/* ── LEADERBOARD PANEL ── */
+.board-panel{width:100%;max-width:480px;background:var(--card);border-radius:var(--radius);border:1px solid rgba(255,255,255,0.07);box-shadow:var(--shadow);padding:16px 14px;display:flex;flex-direction:column;gap:10px;animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;}
+.bp-title{font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--orange);}
+.bp-tabs{display:flex;gap:5px;flex-wrap:wrap;}
+.bp-tab{padding:4px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.08);background:transparent;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.65rem;cursor:pointer;color:var(--muted);transition:all 0.2s;}
+.bp-tab.active{background:var(--orange);color:#1a0800;border-color:var(--orange);}
+.board-row{display:flex;align-items:center;gap:9px;padding:7px 10px;background:var(--card2);border-radius:11px;margin-bottom:5px;}
+.br-rank{font-family:'Fredoka One',cursive;font-size:1rem;width:24px;text-align:center;}
+.br-rank.gold{color:#ffd700;}.br-rank.silver{color:#c0c0c0;}.br-rank.bronze{color:#cd7f32;}
+.br-rank.other{color:var(--muted);font-size:0.8rem;}
+.br-name{flex:1;font-weight:800;font-size:0.82rem;}
+.br-name.me{color:var(--accent);}
+.br-score{font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--accent);}
+.br-diff{font-size:0.58rem;color:var(--muted);padding:2px 6px;border-radius:10px;background:rgba(255,255,255,0.05);}
+.bp-empty{text-align:center;color:var(--muted);font-size:0.8rem;padding:20px 0;}
+
+/* ── BAHASA SCREEN ── */
+.lang-sidebar{width:var(--sidebar);flex-shrink:0;background:var(--card);border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:3px;overflow-y:auto;position:relative;z-index:2;}
+.lang-main{flex:1;min-width:0;display:flex;flex-direction:column;overflow-y:auto;padding:10px 12px 18px;gap:8px;align-items:center;}
+
+/* Lang mode buttons */
+.lang-mode-btn{width:52px;height:52px;border-radius:14px;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;transition:all 0.18s;background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:800;}
+.lang-mode-btn .lmi{font-size:1.3rem;line-height:1;}
+.lang-mode-btn .lml{font-size:0.44rem;text-transform:uppercase;letter-spacing:0.06em;font-weight:800;}
+.lang-mode-btn.active-id2en{background:rgba(45,212,191,0.18);color:var(--teal);box-shadow:0 0 12px rgba(45,212,191,0.25);}
+.lang-mode-btn.active-en2id{background:rgba(255,154,60,0.18);color:var(--orange);box-shadow:0 0 12px rgba(255,154,60,0.25);}
+.lang-mode-btn.active-lchart{background:rgba(45,212,191,0.18);color:var(--teal);}
+.lang-mode-btn.active-lboard{background:rgba(255,154,60,0.18);color:var(--orange);}
+.lang-mode-btn:hover:not([disabled]){background:rgba(255,255,255,0.07);}
+.lang-mode-btn[disabled]{opacity:0.18;cursor:not-allowed;}
+.lang-mode-btn:active:not([disabled]){transform:scale(0.91);}
+
+/* Lang diff */
+.lang-diff-bar{display:flex;gap:5px;width:100%;max-width:480px;}
+.lang-diff-btn{flex:1;padding:7px 2px;border-radius:9px;border:1.5px solid rgba(255,255,255,0.08);background:var(--card);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.68rem;cursor:pointer;color:var(--muted);transition:all 0.2s;}
+.lang-diff-btn.active-easy{border-color:var(--green);color:var(--green);background:rgba(78,203,113,0.12);}
+.lang-diff-btn.active-medium{border-color:var(--accent);color:var(--accent);background:rgba(247,201,72,0.12);}
+.lang-diff-btn.active-explore{border-color:var(--teal);color:var(--teal);background:rgba(45,212,191,0.12);}
+
+/* Lang question card */
+.lang-question-card{width:100%;max-width:480px;background:var(--card);border-radius:var(--radius);border:1px solid rgba(255,255,255,0.07);box-shadow:var(--shadow);padding:16px 14px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;overflow:hidden;}
+.lang-question-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--blue),var(--purple));}
+.lang-badge{font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;padding:3px 11px;border-radius:20px;}
+.badge-id2en{background:rgba(45,212,191,0.15);color:var(--teal);}
+.badge-en2id{background:rgba(255,154,60,0.15);color:var(--orange);}
+.lang-word{font-family:'Fredoka One',cursive;font-size:2.2rem;color:var(--text);text-align:center;}
+.lang-hint{font-size:0.72rem;color:var(--muted);font-weight:600;}
+
+/* Multiple choice */
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;}
+.choice-btn{padding:12px 8px;border-radius:12px;border:2px solid rgba(255,255,255,0.1);background:var(--card2);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.88rem;color:var(--text);cursor:pointer;transition:all 0.18s;text-align:center;}
+.choice-btn:active{transform:scale(0.95);}
+.choice-btn.correct{border-color:var(--green);background:rgba(78,203,113,0.18);color:var(--green);}
+.choice-btn.wrong{border-color:var(--accent2);background:rgba(255,107,107,0.18);color:var(--accent2);animation:shake 0.4s ease;}
+.choice-btn.reveal{border-color:var(--green);background:rgba(78,203,113,0.1);color:var(--green);}
+
+/* ── TEACHER DASHBOARD ── */
+.dashboard{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:14px 12px 28px;display:flex;flex-direction:column;gap:12px;width:100%;}
+.dash-header{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.dash-title{font-family:'Fredoka One',cursive;font-size:1.6rem;background:linear-gradient(135deg,var(--accent),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.dash-back{background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:9px;padding:6px 12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.75rem;color:var(--muted);cursor:pointer;}
+.dash-refresh{background:rgba(79,163,224,0.12);border:1.5px solid rgba(79,163,224,0.25);border-radius:9px;padding:6px 12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.75rem;color:var(--blue);cursor:pointer;}
+.dash-section{font-family:'Fredoka One',cursive;font-size:1rem;color:var(--accent2);margin-top:4px;}
+.add-student-box{background:var(--card);border-radius:13px;padding:13px 14px;border:1px solid rgba(78,203,113,0.2);}
+.add-student-title{font-weight:800;font-size:0.78rem;color:var(--green);margin-bottom:9px;}
+.add-student-row{display:flex;gap:7px;flex-wrap:wrap;}
+.add-student-row input,.add-student-row select{flex:1;min-width:80px;background:var(--card2);border:2px solid rgba(255,255,255,0.1);border-radius:9px;padding:7px 10px;font-family:'Nunito',sans-serif;font-size:0.82rem;color:var(--text);outline:none;}
+.add-student-row input:focus,.add-student-row select:focus{border-color:var(--blue);}
+.add-student-btn{background:var(--green);border:none;border-radius:9px;padding:8px 12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.75rem;color:#0a2412;cursor:pointer;flex-shrink:0;}
+.student-card{background:var(--card);border-radius:13px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;}
+.sc-header{display:flex;align-items:center;gap:7px;padding:10px 13px;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer;user-select:none;}
+.sc-name{font-weight:900;font-size:0.85rem;flex:1;}
+.sc-grade-tag{font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(167,139,250,0.15);color:var(--purple);}
+.sc-arrow{font-size:0.58rem;color:var(--muted);transition:transform 0.2s;}
+.student-card.open .sc-arrow{transform:rotate(90deg);}
+.sc-body{display:none;padding:9px 13px 11px;}
+.student-card.open .sc-body{display:block;}
+.sc-subject-tabs{display:flex;gap:5px;margin-bottom:8px;}
+.sc-subj-tab{padding:4px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.08);background:transparent;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.65rem;cursor:pointer;color:var(--muted);transition:all 0.2s;}
+.sc-subj-tab.active{background:var(--accent);color:#1a1000;border-color:var(--accent);}
+.sc-ops{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px;}
+.sc-op-box{background:var(--card2);border-radius:9px;padding:7px 9px;}
+.sc-op-label{font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;}
+.sc-op-label.add{color:var(--green);}.sc-op-label.sub{color:var(--accent2);}.sc-op-label.mul{color:var(--blue);}.sc-op-label.div{color:var(--purple);}.sc-op-label.mix{color:var(--accent);}.sc-op-label.id2en{color:var(--teal);}.sc-op-label.en2id{color:var(--orange);}
+.sc-best{font-size:0.78rem;font-weight:900;color:var(--accent);}
+.sc-avg{font-size:0.65rem;color:var(--muted);}
+.sc-sessions-title{font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin:7px 0 4px;}
+.sc-session-row{display:flex;gap:5px;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.65rem;}
+.sc-session-row:last-child{border-bottom:none;}
+.ss-op{width:22px;font-size:0.58rem;}.ss-date{color:var(--muted);font-size:0.56rem;flex:1;}
+.ss-pts{font-weight:900;color:var(--accent);}.ss-diff{font-size:0.56rem;color:var(--muted);}
+.no-students{text-align:center;color:var(--muted);font-size:0.82rem;padding:18px;font-weight:600;}
+
+/* Toast */
+.popup{position:fixed;top:18px;left:50%;transform:translateX(-50%);padding:7px 16px;border-radius:26px;font-weight:800;font-size:0.85rem;z-index:999;animation:popFly 1.4s ease forwards;pointer-events:none;}
+.popup.correct{background:var(--green);color:#0a2412;}.popup.wrong{background:var(--accent2);color:#fff;}
+
+/* Install banner */
+.install-banner{width:100%;max-width:400px;background:linear-gradient(135deg,#1e3a5f,#162236);border:1.5px solid rgba(79,163,224,0.3);border-radius:12px;padding:8px 11px;display:flex;align-items:center;gap:8px;}
+.install-banner.hidden{display:none;}
+.install-text{flex:1;}.install-text strong{display:block;font-size:0.75rem;color:var(--blue);}.install-text span{font-size:0.65rem;color:var(--muted);}
+.install-btn{background:var(--blue);border:none;border-radius:7px;padding:5px 10px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.72rem;color:#fff;cursor:pointer;}
+.install-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:3px;}
+
+@keyframes popIn{from{opacity:0;transform:scale(0.88);}to{opacity:1;transform:scale(1);}}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+@keyframes popFly{0%{opacity:0;transform:translateX(-50%) translateY(10px) scale(0.8);}15%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.05);}70%{opacity:1;transform:translateX(-50%) translateY(-8px) scale(1);}100%{opacity:0;transform:translateX(-50%) translateY(-20px) scale(0.9);}}
+.hidden{display:none!important;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+
+<!-- ══ WELCOME ══ -->
+<div class="screen active" id="screen-welcome">
+  <div class="install-banner hidden" id="installBanner">
+    <div class="install-text"><strong>📲 Install NokenIlmu</strong><span>Tambah ke home screen</span></div>
+    <button class="install-btn" id="installBtn">Install</button>
+    <button class="install-close" onclick="document.getElementById('installBanner').classList.add('hidden')">✕</button>
+  </div>
+  <div class="auth-box">
+    <div class="auth-logo">⭐ NokenIlmu</div>
+    <div class="auth-sub">Matematika & Bahasa Indonesia</div>
+    <div class="sync-badge connecting" id="welcomeSyncBadge">☁️ Menghubungkan...</div>
+    <!-- Role picker -->
+    <div>
+      <div class="auth-label" style="margin-bottom:8px;">Masuk sebagai:</div>
+      <div class="role-row">
+        <button class="role-btn active-student" id="roleStudent" onclick="setRole('student')">
+          <svg width="64" height="72" viewBox="0 0 130 160" style="display:block;margin:0 auto;">
+            <!-- Boy avatar small -->
+            <ellipse cx="65" cy="154" rx="46" ry="7" fill="#00000015"/>
+            <rect x="31" y="116" width="22" height="30" rx="6" fill="#9B6130"/>
+            <rect x="77" y="116" width="22" height="30" rx="6" fill="#9B6130"/>
+            <rect x="25" y="134" width="28" height="12" rx="5" fill="#f1f5f9"/>
+            <rect x="77" y="134" width="28" height="12" rx="5" fill="#f1f5f9"/>
+            <rect x="25" y="134" width="28" height="5" rx="3" fill="#cbd5e1"/>
+            <rect x="77" y="134" width="28" height="5" rx="3" fill="#cbd5e1"/>
+            <rect x="27" y="96" width="30" height="24" rx="7" fill="#1e3a8a"/>
+            <rect x="73" y="96" width="30" height="24" rx="7" fill="#1e3a8a"/>
+            <rect x="27" y="96" width="68" height="7" rx="3" fill="#1e40af"/>
+            <rect x="29" y="40" width="72" height="62" rx="12" fill="#f8fafc"/>
+            <rect x="29" y="40" width="72" height="62" rx="12" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+            <ellipse cx="65" cy="44" rx="14" ry="8" fill="#e2e8f0"/>
+            <rect x="11" y="42" width="20" height="24" rx="10" fill="#f8fafc"/>
+            <rect x="11" y="62" width="20" height="5" rx="4" fill="#e2e8f0"/>
+            <rect x="99" y="42" width="20" height="24" rx="10" fill="#f8fafc"/>
+            <rect x="99" y="62" width="20" height="5" rx="4" fill="#e2e8f0"/>
+            <rect x="13" y="66" width="18" height="28" rx="9" fill="#9B6130"/>
+            <rect x="99" y="66" width="18" height="28" rx="9" fill="#9B6130"/>
+            <ellipse cx="22" cy="98" rx="11" ry="10" fill="#8B5523"/>
+            <ellipse cx="108" cy="98" rx="11" ry="10" fill="#8B5523"/>
+            <rect x="54" y="22" width="22" height="20" rx="7" fill="#9B6130"/>
+            <ellipse cx="65" cy="16" rx="46" ry="20" fill="#9B6130"/>
+            <ellipse cx="65" cy="-4" rx="46" ry="20" fill="#2c1810"/>
+            <ellipse cx="37" cy="8" rx="20" ry="16" fill="#2c1810"/>
+            <ellipse cx="93" cy="8" rx="20" ry="16" fill="#2c1810"/>
+            <ellipse cx="51" cy="-4" rx="17" ry="12" fill="#3a2015"/>
+            <ellipse cx="79" cy="-4" rx="17" ry="12" fill="#3a2015"/>
+            <ellipse cx="65" cy="-6" rx="21" ry="13" fill="#3a2015"/>
+            <ellipse cx="21" cy="18" rx="8" ry="10" fill="#9B6130"/>
+            <ellipse cx="109" cy="18" rx="8" ry="10" fill="#9B6130"/>
+            <ellipse cx="49" cy="14" rx="9" ry="10" fill="white"/>
+            <ellipse cx="81" cy="14" rx="9" ry="10" fill="white"/>
+            <ellipse cx="50" cy="16" rx="6" ry="7" fill="#2c1810"/>
+            <ellipse cx="80" cy="16" rx="6" ry="7" fill="#2c1810"/>
+            <ellipse cx="52" cy="14" rx="2" ry="2" fill="white"/>
+            <ellipse cx="82" cy="14" rx="2" ry="2" fill="white"/>
+            <path d="M41,4 Q51,-1 59,4" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M71,4 Q81,-1 89,4" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <ellipse cx="65" cy="26" rx="6" ry="5" fill="#7D4A1C"/>
+            <path d="M52,40 Q65,52 78,40" stroke="#5c2e0a" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+          <span class="rb-label">Murid</span>
+        </button>
+        <button class="role-btn" id="roleTeacher" onclick="setRole('teacher')">
+          <svg width="64" height="72" viewBox="0 0 130 160" style="display:block;margin:0 auto;">
+            <!-- Teacher avatar small -->
+            <ellipse cx="65" cy="154" rx="54" ry="7" fill="#00000015"/>
+            <rect x="27" y="120" width="32" height="34" rx="7" fill="#1e3a8a"/>
+            <rect x="71" y="120" width="32" height="34" rx="7" fill="#1e3a8a"/>
+            <ellipse cx="43" cy="156" rx="18" ry="7" fill="#0f0f0f"/>
+            <ellipse cx="87" cy="156" rx="18" ry="7" fill="#0f0f0f"/>
+            <rect x="25" y="42" width="80" height="84" rx="10" fill="#f8fafc"/>
+            <rect x="25" y="42" width="80" height="84" rx="10" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+            <rect x="63" y="42" width="4" height="84" fill="#e2e8f0"/>
+            <polygon points="51,42 79,42 74,58 56,58" fill="#f1f5f9"/>
+            <polygon points="59,56 71,56 74,110 65,120 56,110" fill="#111827"/>
+            <ellipse cx="65" cy="58" rx="7" ry="5" fill="#1f2937"/>
+            <rect x="25" y="120" width="80" height="8" rx="3" fill="#0f172a"/>
+            <rect x="3" y="44" width="24" height="58" rx="11" fill="#f8fafc"/>
+            <rect x="103" y="44" width="24" height="58" rx="11" fill="#f8fafc"/>
+            <rect x="3" y="92" width="24" height="9" rx="5" fill="#e2e8f0"/>
+            <rect x="103" y="92" width="24" height="9" rx="5" fill="#e2e8f0"/>
+            <ellipse cx="15" cy="109" rx="12" ry="11" fill="#9B6130"/>
+            <ellipse cx="115" cy="109" rx="12" ry="11" fill="#9B6130"/>
+            <rect x="52" y="18" width="26" height="26" rx="8" fill="#9B6130"/>
+            <ellipse cx="65" cy="10" rx="50" ry="18" fill="#1e1208"/>
+            <ellipse cx="65" cy="-2" rx="50" ry="20" fill="#1e1208"/>
+            <ellipse cx="33" cy="10" rx="22" ry="15" fill="#1e1208"/>
+            <ellipse cx="97" cy="10" rx="22" ry="15" fill="#1e1208"/>
+            <ellipse cx="65" cy="-4" rx="36" ry="14" fill="#2a1a0a"/>
+            <ellipse cx="21" cy="20" rx="9" ry="11" fill="#9B6130"/>
+            <ellipse cx="109" cy="20" rx="9" ry="11" fill="#9B6130"/>
+            <ellipse cx="65" cy="-2" rx="50" ry="20" fill="#2c1810"/>
+            <ellipse cx="47" cy="10" rx="10" ry="10" fill="white"/>
+            <ellipse cx="83" cy="10" rx="10" ry="10" fill="white"/>
+            <ellipse cx="48" cy="12" rx="7" ry="7" fill="#1e1208"/>
+            <ellipse cx="82" cy="12" rx="7" ry="7" fill="#1e1208"/>
+            <ellipse cx="50" cy="10" rx="2.5" ry="2.5" fill="white"/>
+            <ellipse cx="84" cy="10" rx="2.5" ry="2.5" fill="white"/>
+            <path d="M37,-2 Q49,-8 57,-2" stroke="#1e1208" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <path d="M73,-2 Q83,-8 93,-2" stroke="#1e1208" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <ellipse cx="65" cy="24" rx="8" ry="7" fill="#7D4A1C"/>
+            <path d="M50,38 Q65,54 80,38" stroke="#5c2e0a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <rect x="35" y="-8" width="22" height="17" rx="5" fill="none" stroke="#1e1208" stroke-width="2"/>
+            <rect x="73" y="-8" width="22" height="17" rx="5" fill="none" stroke="#1e1208" stroke-width="2"/>
+            <line x1="57" y1="0" x2="73" y2="0" stroke="#1e1208" stroke-width="2"/>
+            <line x1="13" y1="-3" x2="35" y2="-3" stroke="#1e1208" stroke-width="2"/>
+            <line x1="95" y1="-3" x2="115" y2="-3" stroke="#1e1208" stroke-width="2"/>
+          </svg>
+          <span class="rb-label">Guru</span>
+        </button>
+      </div>
+    </div>
+    <div><div class="auth-label">Nama</div><input class="auth-input" id="login-name" type="text" placeholder="Nama kamu" autocomplete="off"></div>
+    <div><div class="auth-label">Password</div><input class="auth-input" id="login-pass" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="auth-err" id="login-err"></div>
+    <button class="auth-btn" onclick="doLogin()">Masuk →</button>
+  </div>
+</div>
+
+<!-- ══ SUBJECT PICKER ══ -->
+<div class="screen" id="screen-subject">
+  <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;">
+    <!-- Show boy+girl avatars at top -->
+    <div style="display:flex;gap:16px;justify-content:center;margin-bottom:4px;">
+      <svg width="56" height="64" viewBox="0 0 130 150">
+        <ellipse cx="65" cy="144" rx="46" ry="7" fill="#00000015"/>
+        <rect x="31" y="108" width="22" height="30" rx="6" fill="#9B6130"/>
+        <rect x="77" y="108" width="22" height="30" rx="6" fill="#9B6130"/>
+        <rect x="25" y="126" width="28" height="12" rx="5" fill="#f1f5f9"/>
+        <rect x="77" y="126" width="28" height="12" rx="5" fill="#f1f5f9"/>
+        <rect x="25" y="126" width="28" height="5" rx="3" fill="#cbd5e1"/>
+        <rect x="77" y="126" width="28" height="5" rx="3" fill="#cbd5e1"/>
+        <rect x="27" y="90" width="30" height="24" rx="7" fill="#1e3a8a"/>
+        <rect x="73" y="90" width="30" height="24" rx="7" fill="#1e3a8a"/>
+        <rect x="27" y="90" width="68" height="7" rx="3" fill="#1e40af"/>
+        <rect x="29" y="32" width="72" height="64" rx="12" fill="#f8fafc"/>
+        <rect x="29" y="32" width="72" height="64" rx="12" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+        <ellipse cx="65" cy="36" rx="14" ry="8" fill="#e2e8f0"/>
+        <rect x="11" y="34" width="20" height="24" rx="10" fill="#f8fafc"/>
+        <rect x="11" y="54" width="20" height="5" rx="4" fill="#e2e8f0"/>
+        <rect x="99" y="34" width="20" height="24" rx="10" fill="#f8fafc"/>
+        <rect x="99" y="54" width="20" height="5" rx="4" fill="#e2e8f0"/>
+        <rect x="13" y="58" width="18" height="28" rx="9" fill="#9B6130"/>
+        <rect x="99" y="58" width="18" height="28" rx="9" fill="#9B6130"/>
+        <ellipse cx="22" cy="90" rx="11" ry="10" fill="#8B5523"/>
+        <ellipse cx="108" cy="90" rx="11" ry="10" fill="#8B5523"/>
+        <rect x="54" y="14" width="22" height="20" rx="7" fill="#9B6130"/>
+        <ellipse cx="65" cy="10" rx="46" ry="18" fill="#9B6130"/>
+        <ellipse cx="65" cy="-6" rx="46" ry="20" fill="#2c1810"/>
+        <ellipse cx="37" cy="4" rx="20" ry="16" fill="#2c1810"/>
+        <ellipse cx="93" cy="4" rx="20" ry="16" fill="#2c1810"/>
+        <ellipse cx="51" cy="-6" rx="17" ry="12" fill="#3a2015"/>
+        <ellipse cx="79" cy="-6" rx="17" ry="12" fill="#3a2015"/>
+        <ellipse cx="65" cy="-8" rx="21" ry="13" fill="#3a2015"/>
+        <ellipse cx="21" cy="12" rx="8" ry="10" fill="#9B6130"/>
+        <ellipse cx="109" cy="12" rx="8" ry="10" fill="#9B6130"/>
+        <ellipse cx="49" cy="8" rx="9" ry="10" fill="white"/>
+        <ellipse cx="81" cy="8" rx="9" ry="10" fill="white"/>
+        <ellipse cx="50" cy="10" rx="6" ry="7" fill="#2c1810"/>
+        <ellipse cx="80" cy="10" rx="6" ry="7" fill="#2c1810"/>
+        <path d="M41,-2 Q51,-7 59,-2" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M71,-2 Q81,-7 89,-2" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="65" cy="20" rx="6" ry="5" fill="#7D4A1C"/>
+        <path d="M52,34 Q65,46 78,34" stroke="#5c2e0a" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <svg width="56" height="64" viewBox="0 0 130 150">
+        <ellipse cx="65" cy="144" rx="46" ry="7" fill="#00000015"/>
+        <rect x="33" y="106" width="20" height="28" rx="6" fill="#9B6130"/>
+        <rect x="77" y="106" width="20" height="28" rx="6" fill="#9B6130"/>
+        <rect x="25" y="126" width="24" height="10" rx="5" fill="#f1f5f9"/>
+        <rect x="81" y="126" width="24" height="10" rx="5" fill="#f1f5f9"/>
+        <rect x="25" y="126" width="24" height="4" rx="3" fill="#cbd5e1"/>
+        <rect x="81" y="126" width="24" height="4" rx="3" fill="#cbd5e1"/>
+        <rect x="31" y="86" width="28" height="28" rx="7" fill="#1e3a8a"/>
+        <rect x="71" y="86" width="28" height="28" rx="7" fill="#1e3a8a"/>
+        <rect x="31" y="86" width="68" height="7" rx="3" fill="#1e40af"/>
+        <rect x="29" y="24" width="72" height="68" rx="12" fill="#f8fafc"/>
+        <rect x="29" y="24" width="72" height="68" rx="12" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+        <ellipse cx="65" cy="28" rx="14" ry="8" fill="#e2e8f0"/>
+        <ellipse cx="65" cy="28" rx="8" ry="5" fill="#fca5a5"/>
+        <ellipse cx="58" cy="27" rx="5" ry="4" fill="#fca5a5"/>
+        <ellipse cx="72" cy="27" rx="5" ry="4" fill="#fca5a5"/>
+        <ellipse cx="65" cy="27" rx="3" ry="3" fill="#f87171"/>
+        <rect x="11" y="26" width="20" height="24" rx="10" fill="#f8fafc"/>
+        <rect x="11" y="46" width="20" height="5" rx="4" fill="#e2e8f0"/>
+        <rect x="99" y="26" width="20" height="24" rx="10" fill="#f8fafc"/>
+        <rect x="99" y="46" width="20" height="5" rx="4" fill="#e2e8f0"/>
+        <rect x="13" y="50" width="18" height="32" rx="9" fill="#9B6130"/>
+        <rect x="99" y="50" width="18" height="32" rx="9" fill="#9B6130"/>
+        <ellipse cx="22" cy="86" rx="11" ry="10" fill="#8B5523"/>
+        <ellipse cx="108" cy="86" rx="11" ry="10" fill="#8B5523"/>
+        <rect x="54" y="10" width="22" height="16" rx="7" fill="#9B6130"/>
+        <ellipse cx="65" cy="6" rx="48" ry="18" fill="#9B6130"/>
+        <ellipse cx="65" cy="-8" rx="48" ry="22" fill="#2c1810"/>
+        <ellipse cx="35" cy="2" rx="22" ry="17" fill="#2c1810"/>
+        <ellipse cx="95" cy="2" rx="22" ry="17" fill="#2c1810"/>
+        <ellipse cx="13" cy="16" rx="13" ry="30" fill="#2c1810"/>
+        <ellipse cx="117" cy="16" rx="13" ry="30" fill="#2c1810"/>
+        <ellipse cx="99" cy="-4" rx="10" ry="7" fill="#f472b6"/>
+        <ellipse cx="111" cy="-6" rx="10" ry="7" fill="#f472b6"/>
+        <ellipse cx="105" cy="-5" rx="5" ry="5" fill="#ec4899"/>
+        <ellipse cx="17" cy="6" rx="8" ry="10" fill="#9B6130"/>
+        <ellipse cx="113" cy="6" rx="8" ry="10" fill="#9B6130"/>
+        <ellipse cx="48" cy="2" rx="10" ry="12" fill="white"/>
+        <ellipse cx="82" cy="2" rx="10" ry="12" fill="white"/>
+        <ellipse cx="49" cy="5" rx="7" ry="8" fill="#2c1810"/>
+        <ellipse cx="81" cy="5" rx="7" ry="8" fill="#2c1810"/>
+        <ellipse cx="51" cy="3" rx="2.5" ry="2.5" fill="white"/>
+        <ellipse cx="83" cy="3" rx="2.5" ry="2.5" fill="white"/>
+        <path d="M39,-6 Q49,-11 57,-6" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M73,-6 Q83,-11 91,-6" stroke="#2c1810" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="65" cy="18" rx="5" ry="4" fill="#7D4A1C"/>
+        <path d="M51,30 Q65,46 79,30" stroke="#5c2e0a" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="subj-title">Halo, <span id="subjectGreeting">Siswa</span>! 👋</div>
+    <div class="subj-sub" style="margin-top:4px;">Mau belajar apa hari ini?</div>
+  </div>
+  <div class="subject-pick">
+    <button class="subj-btn math" onclick="chooseSubject('math')">
+      <span class="sj-icon">🔢</span>
+      <span class="sj-label">Matematika</span>
+      <span class="sj-desc">Berhitung, penjumlahan, perkalian & lebih</span>
+    </button>
+    <button class="subj-btn lang" onclick="chooseSubject('lang')">
+      <span class="sj-icon">📚</span>
+      <span class="sj-label">Bahasa</span>
+      <span class="sj-desc">Terjemahan Indonesia ↔ English</span>
+    </button>
+  </div>
+  <button class="auth-btn secondary" style="max-width:200px;" onclick="doLogout()">← Keluar</button>
+</div>
+
+<!-- ══ TEACHER LOGIN / REGISTER ══ -->
+<div class="screen" id="screen-teacher-login">
+  <div class="auth-box">
+    <div class="auth-logo">🏫 Portal Guru</div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;width:100%;">
+      <button id="tab-login" onclick="switchTeacherTab('login')" style="flex:1;padding:8px;border-radius:9px;border:2px solid var(--purple);background:rgba(167,139,250,0.15);color:var(--purple);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.8rem;cursor:pointer;">Masuk</button>
+      <button id="tab-register" onclick="switchTeacherTab('register')" style="flex:1;padding:8px;border-radius:9px;border:2px solid rgba(255,255,255,0.1);background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.8rem;cursor:pointer;">Daftar Baru</button>
+    </div>
+
+    <!-- LOGIN PANEL -->
+    <div id="teacher-login-panel">
+      <div><div class="auth-label">Nama Guru</div><input class="auth-input" id="tl-name" type="text" placeholder="Nama kamu" autocomplete="off"></div>
+      <div><div class="auth-label">Password</div><input class="auth-input" id="tl-pass" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')doTeacherLogin()"></div>
+      <div class="auth-err" id="teacher-err"></div>
+      <button class="auth-btn" onclick="doTeacherLogin()" style="background:linear-gradient(135deg,var(--purple),#7c5cdb);color:#fff;">Masuk Dashboard →</button>
+    </div>
+
+    <!-- REGISTER PANEL -->
+    <div id="teacher-register-panel" class="hidden">
+      <div><div class="auth-label">Nama Guru</div><input class="auth-input" id="tr-name" type="text" placeholder="Nama lengkap kamu" autocomplete="off"></div>
+      <div><div class="auth-label">Kelas yang diajar</div>
+        <select class="auth-input" id="tr-grade">
+          <option value="1">Kelas 1</option><option value="2">Kelas 2</option>
+          <option value="3">Kelas 3</option><option value="4">Kelas 4</option>
+          <option value="5">Kelas 5</option><option value="6">Kelas 6</option>
+        </select>
+      </div>
+      <div><div class="auth-label">Password</div><input class="auth-input" id="tr-pass" type="password" placeholder="Min. 4 karakter"></div>
+      <div><div class="auth-label">Kode Pendaftaran</div><input class="auth-input" id="tr-code" type="password" placeholder="Tanya kepala sekolah" onkeydown="if(event.key==='Enter')doTeacherRegister()"></div>
+      <div class="auth-err" id="register-err"></div>
+      <button class="auth-btn" onclick="doTeacherRegister()" style="background:linear-gradient(135deg,var(--green),#2ecc71);color:#0a2412;">Daftar →</button>
+    </div>
+
+    <button class="auth-btn secondary" onclick="goBackFromTeacher()">← Kembali</button>
+  </div>
+</div>
+
+<!-- ══ MATH GAME ══ -->
+<div id="screen-game">
+  <div class="game-sidebar">
+    <div class="sb-logo">🔢</div>
+    <button class="mode-icon-btn active-add" id="mib-add" onclick="setMode('add')"><span class="mi-emoji">➕</span><span class="mi-label">Add</span></button>
+    <button class="mode-icon-btn" id="mib-sub" onclick="setMode('sub')"><span class="mi-emoji">➖</span><span class="mi-label">Sub</span></button>
+    <button class="mode-icon-btn" id="mib-mul" onclick="setMode('mul')"><span class="mi-emoji">✖️</span><span class="mi-label">Mul</span></button>
+    <button class="mode-icon-btn" id="mib-div" onclick="setMode('div')"><span class="mi-emoji">➗</span><span class="mi-label">Div</span></button>
+    <button class="mode-icon-btn" id="mib-mix" onclick="setMode('mix')"><span class="mi-emoji">🎲</span><span class="mi-label">Mix</span></button>
+    <div class="sb-divider"></div>
+    <button class="mode-icon-btn" id="mib-chart" onclick="showMathPanel('chart')"><span class="mi-emoji">📈</span><span class="mi-label">Grafik</span></button>
+    <button class="mode-icon-btn" id="mib-board" onclick="showMathPanel('board')"><span class="mi-emoji">🏆</span><span class="mi-label">Rank</span></button>
+    <div class="sb-history" id="sb-history"><div class="sh-title">History</div><div class="sh-empty">Belum ada</div></div>
+    <div class="sb-bottom">
+      <button class="sb-icon-btn sbi-home" onclick="showScreen('screen-subject')">🏠 Home</button>
+      <button class="sb-icon-btn" style="background:rgba(45,212,191,0.15);color:var(--teal);border:1px solid rgba(45,212,191,0.25);" onclick="switchToLang()">📚 Bahasa</button>
+      <button class="sb-icon-btn sbi-teacher" onclick="showScreen('screen-teacher-login')">🏫 Guru</button>
+      <button class="sb-icon-btn sbi-logout" onclick="doLogout()">← Keluar</button>
+    </div>
+  </div>
+  <div class="game-main">
+    <div class="user-bar" style="max-width:480px;width:100%;">
+      <span class="user-name" id="userNameDisplay">👤</span>
+      <span class="sync-indicator syncing" id="syncIndicator">⟳</span>
+      <span class="user-grade-tag" id="userGradeTag">Kelas 2</span>
+    </div>
+    <div class="game-header"><div class="logo">⚡ NokenIlmu</div><div class="tagline">Latihan Matematika</div></div>
+    <div class="mode-indicator mi-add" id="modeIndicator">➕ Penjumlahan</div>
+    <!-- Difficulty bar -->
+    <div class="diff-bar" id="diffBar">
+      <button class="diff-btn active-easy" id="dib-easy" onclick="setDiff('easy')">🟢 Mudah</button>
+      <button class="diff-btn" id="dib-medium" onclick="setDiff('medium')">🟡 Sedang</button>
+      <button class="diff-btn" id="dib-hard" onclick="setDiff('hard')">🔴 Sulit</button>
+      <button class="diff-btn" id="dib-explore" onclick="setDiff('explore')">🔭 Explore</button>
+    </div>
+    <div class="stats">
+      <div class="stat-box"><div class="stat-label">Skor</div><div class="stat-value score" id="scoreDisplay">—</div></div>
+      <div class="stat-box"><div class="stat-label">🔥 Streak</div><div class="stat-value streak" id="streakDisplay">0</div></div>
+      <div class="stat-box"><div class="stat-label">⏱ Waktu</div><div class="stat-value timer" id="timerDisplay">120</div></div>
+    </div>
+    <!-- Explore level bar (hidden unless explore mode) -->
+    <div class="explore-bar hidden" id="exploreMathBar">
+      <span class="explore-label">🔭 Level</span>
+      <div class="explore-track"><div class="explore-fill" id="exploreMathFill" style="width:0%;background:var(--teal)"></div></div>
+      <span class="explore-lvl" id="exploreMathLvl">1/9</span>
+    </div>
+    <!-- Ready screen -->
+    <div class="ready-screen" id="readyScreen">
+      <div class="ready-emoji" id="readyEmoji">➕</div>
+      <div class="ready-title" id="readyTitle">Penjumlahan</div>
+      <div class="ready-info" id="readyInfo">Kelas 2 · Mudah</div>
+      <div class="ready-rules">
+        <div class="rr-item">⏱ 120 detik</div>
+        <div class="rr-item">🎯 30 soal untuk dijawab</div>
+        <div class="rr-item">⭐ 30/30 benar = skor 100</div>
+      </div>
+      <button class="start-btn" onclick="startGame()">▶ Mulai!</button>
+    </div>
+    <!-- Question card -->
+    <div class="question-card hidden" id="questionCard">
+      <div class="op-badge op-add" id="opBadge">Penjumlahan</div>
+      <div class="question-text" id="questionText">
+        <span id="num1">?</span><span class="op-symbol" id="opSymbol">+</span><span id="num2">?</span><span class="eq">=</span>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+      <div class="progress-label" id="progressLabel">0/30 benar</div>
+      <div class="answer-row">
+        <div class="answer-input empty" id="answerInput">?</div>
+        <button class="submit-btn" onclick="submitAnswer()">→</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+    <div class="numpad hidden" id="mathNumpad">
+      <button class="np-btn" onclick="npPress('7')">7</button><button class="np-btn" onclick="npPress('8')">8</button><button class="np-btn" onclick="npPress('9')">9</button>
+      <button class="np-btn" onclick="npPress('4')">4</button><button class="np-btn" onclick="npPress('5')">5</button><button class="np-btn" onclick="npPress('6')">6</button>
+      <button class="np-btn" onclick="npPress('1')">1</button><button class="np-btn" onclick="npPress('2')">2</button><button class="np-btn" onclick="npPress('3')">3</button>
+      <button class="np-btn neg" onclick="npNeg()">±</button><button class="np-btn" onclick="npPress('0')">0</button><button class="np-btn del" onclick="npDel()">⌫</button>
+    </div>
+    <div class="action-row hidden" id="mathActionRow"><button class="btn-reset" onclick="resetGame()">🔄 Ulangi</button></div>
+    <div class="result-screen hidden" id="resultScreen">
+      <div class="result-emoji" id="resultEmoji">🎉</div>
+      <div class="result-title" id="resultTitle">Waktu Habis!</div>
+      <div class="result-sub" id="resultSub">Hasil kamu:</div>
+      <div class="result-score" id="resultScore">0<span style="font-size:1.6rem;color:var(--muted)">/100</span></div>
+      <div class="result-detail">
+        <div class="rd-box"><div class="rd-label">Benar</div><div class="rd-val" id="rdCorrect" style="color:var(--green)">0</div><div class="rd-sub" id="rdCorrectSub">dari 30</div></div>
+        <div class="rd-box"><div class="rd-label">Salah</div><div class="rd-val" id="rdWrong" style="color:var(--accent2)">0</div><div class="rd-sub">jawaban</div></div>
+        <div class="rd-box"><div class="rd-label">Waktu</div><div class="rd-val" id="rdTime" style="color:var(--blue)">0s</div><div class="rd-sub">digunakan</div></div>
+        <div class="rd-box"><div class="rd-label">Streak</div><div class="rd-val" id="rdStreak" style="color:var(--accent)">0</div><div class="rd-sub">terbaik</div></div>
+      </div>
+      <button class="play-again" onclick="resetGame()">🚀 Main Lagi!</button>
+    </div>
+    <!-- Chart panel -->
+    <div class="chart-panel hidden" id="chartPanel">
+      <div class="cp-title">📈 Riwayat Skor</div>
+      <div class="cp-tabs" id="cpTabs"></div>
+      <div class="chart-wrap"><canvas id="scoreChart"></canvas></div>
+    </div>
+    <!-- Leaderboard panel -->
+    <div class="board-panel hidden" id="boardPanel">
+      <div class="bp-title">🏆 Leaderboard</div>
+      <div class="bp-tabs" id="bpTabs"></div>
+      <div id="boardList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BAHASA GAME ══ -->
+<div id="screen-lang">
+  <div class="lang-sidebar">
+    <div class="sb-logo">📚</div>
+    <button class="lang-mode-btn active-id2en" id="lmb-id2en" onclick="setLangMode('id2en')"><span class="lmi">🇮🇩</span><span class="lml">→EN</span></button>
+    <button class="lang-mode-btn" id="lmb-en2id" onclick="setLangMode('en2id')"><span class="lmi">🇬🇧</span><span class="lml">→ID</span></button>
+    <div class="sb-divider"></div>
+    <button class="lang-mode-btn" id="lmb-lchart" onclick="showLangPanel('chart')"><span class="lmi">📈</span><span class="lml">Grafik</span></button>
+    <button class="lang-mode-btn" id="lmb-lboard" onclick="showLangPanel('board')"><span class="lmi">🏆</span><span class="lml">Rank</span></button>
+    <div class="sb-history" id="lsb-history"><div class="sh-title">History</div><div class="sh-empty">Belum ada</div></div>
+    <div class="sb-bottom">
+      <button class="sb-icon-btn sbi-home" onclick="showScreen('screen-subject')">🏠 Home</button>
+      <button class="sb-icon-btn" style="background:rgba(247,201,72,0.15);color:var(--accent);border:1px solid rgba(247,201,72,0.25);" onclick="switchToMath()">🔢 Math</button>
+      <button class="sb-icon-btn sbi-teacher" onclick="showScreen('screen-teacher-login')">🏫 Guru</button>
+      <button class="sb-icon-btn sbi-logout" onclick="doLogout()">← Keluar</button>
+    </div>
+  </div>
+  <div class="lang-main">
+    <div class="user-bar" style="max-width:480px;width:100%;">
+      <span class="user-name" id="lUserName">👤</span>
+      <span class="sync-indicator syncing" id="lSyncIndicator">⟳</span>
+      <span class="user-grade-tag" id="lUserGrade">Kelas 3</span>
+    </div>
+    <div class="game-header"><div class="logo" style="background:linear-gradient(135deg,var(--teal),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">📚 Bahasa!</div><div class="tagline">Latihan Terjemahan</div></div>
+    <div class="mode-indicator badge-id2en" id="langModeIndicator">🇮🇩 Indonesia → English</div>
+    <div class="lang-diff-bar">
+      <button class="lang-diff-btn active-easy" id="ldib-easy" onclick="setLangDiff('easy')">🟢 Mudah (Pilihan)</button>
+      <button class="lang-diff-btn" id="ldib-medium" onclick="setLangDiff('medium')">🟡 Sedang (Ketik)</button>
+      <button class="lang-diff-btn" id="ldib-explore" onclick="setLangDiff('explore')">🔭 Explore</button>
+    </div>
+    <div class="stats">
+      <div class="stat-box"><div class="stat-label">Skor</div><div class="stat-value score" id="lScoreDisplay">—</div></div>
+      <div class="stat-box"><div class="stat-label">🔥 Streak</div><div class="stat-value streak" id="lStreakDisplay">0</div></div>
+      <div class="stat-box"><div class="stat-label">⏱ Waktu</div><div class="stat-value timer" id="lTimerDisplay">120</div></div>
+    </div>
+    <div class="explore-bar hidden" id="exploreLangBar">
+      <span class="explore-label">🔭 Level</span>
+      <div class="explore-track"><div class="explore-fill" id="exploreLangFill" style="width:0%;background:var(--teal)"></div></div>
+      <span class="explore-lvl" id="exploreLangLvl">1/6</span>
+    </div>
+    <!-- Lang ready -->
+    <div class="ready-screen" id="langReadyScreen">
+      <div class="ready-emoji" id="langReadyEmoji">🇮🇩</div>
+      <div class="ready-title" id="langReadyTitle">Indonesia → English</div>
+      <div class="ready-info" id="langReadyInfo">Kelas 3 · Mudah</div>
+      <div class="ready-rules">
+        <div class="rr-item">⏱ 120 detik</div>
+        <div class="rr-item">🎯 30 soal terjemahan</div>
+        <div class="rr-item">⭐ 30/30 benar = skor 100</div>
+      </div>
+      <button class="start-btn" onclick="startLangGame()">▶ Mulai!</button>
+    </div>
+    <!-- Lang question card -->
+    <div class="lang-question-card hidden" id="langQuestionCard">
+      <div class="lang-badge badge-id2en" id="langBadge">Indonesia → English</div>
+      <div class="lang-word" id="langWord">kata</div>
+      <div class="lang-hint" id="langHint">Pilih terjemahan yang benar</div>
+      <div class="progress-wrap" style="width:100%;"><div class="progress-bar" id="lProgressBar" style="width:0%"></div></div>
+      <div class="progress-label" id="lProgressLabel">0/30 benar</div>
+      <!-- Easy: choices -->
+      <div class="choices hidden" id="choicesDiv"></div>
+      <!-- Medium: type answer -->
+      <div class="answer-row hidden" id="langAnswerRow">
+        <div class="answer-input empty" id="langAnswerInput" style="font-size:1rem;font-family:'Nunito',sans-serif;font-weight:800;min-height:48px;">?</div>
+        <button class="submit-btn" onclick="submitLangAnswer()">→</button>
+      </div>
+      <div class="feedback" id="langFeedback"></div>
+    </div>
+    <!-- Lang keyboard for medium -->
+    <div class="hidden" id="langKeyboard" style="width:100%;max-width:480px;">
+      <input type="text" id="langTypeInput" class="auth-input" placeholder="Ketik terjemahan..." style="width:100%;font-size:1rem;" onkeydown="if(event.key==='Enter')submitLangAnswer()">
+    </div>
+    <div class="action-row hidden" id="langActionRow"><button class="btn-reset" onclick="resetLangGame()">🔄 Ulangi</button></div>
+    <div class="result-screen hidden" id="langResultScreen">
+      <div class="result-emoji" id="lResultEmoji">🎉</div>
+      <div class="result-title" id="lResultTitle">Waktu Habis!</div>
+      <div class="result-sub" id="lResultSub">Hasil kamu:</div>
+      <div class="result-score" id="lResultScore">0<span style="font-size:1.6rem;color:var(--muted)">/100</span></div>
+      <div class="result-detail">
+        <div class="rd-box"><div class="rd-label">Benar</div><div class="rd-val" id="lRdCorrect" style="color:var(--green)">0</div><div class="rd-sub">dari 30</div></div>
+        <div class="rd-box"><div class="rd-label">Salah</div><div class="rd-val" id="lRdWrong" style="color:var(--accent2)">0</div><div class="rd-sub">jawaban</div></div>
+        <div class="rd-box"><div class="rd-label">Waktu</div><div class="rd-val" id="lRdTime" style="color:var(--blue)">0s</div><div class="rd-sub">digunakan</div></div>
+        <div class="rd-box"><div class="rd-label">Streak</div><div class="rd-val" id="lRdStreak" style="color:var(--accent)">0</div><div class="rd-sub">terbaik</div></div>
+      </div>
+      <button class="play-again" onclick="resetLangGame()">🚀 Main Lagi!</button>
+    </div>
+    <!-- Lang chart & board panels -->
+    <div class="chart-panel hidden" id="langChartPanel">
+      <div class="cp-title">📈 Riwayat Bahasa</div>
+      <div class="cp-tabs" id="lcpTabs"></div>
+      <div class="chart-wrap"><canvas id="langScoreChart"></canvas></div>
+    </div>
+    <div class="board-panel hidden" id="langBoardPanel">
+      <div class="bp-title">🏆 Leaderboard Bahasa</div>
+      <div class="bp-tabs" id="lbpTabs"></div>
+      <div id="langBoardList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TEACHER DASHBOARD ══ -->
+<div class="screen" id="screen-dashboard">
+  <div class="dashboard">
+    <div class="dash-header">
+      <div>
+        <div class="dash-title">🏫 Dashboard Guru</div>
+        <div id="dash-teacher-info" style="font-size:0.7rem;color:var(--muted);margin-top:2px;"></div>
+      </div>
+      <button class="dash-refresh" onclick="loadDashboard()">⟳ Refresh</button>
+      <button class="dash-back" onclick="exitDashboard()">← Kembali</button>
+    </div>
+
+    <!-- Fast student add form -->
+    <div class="add-student-box">
+      <div class="add-student-title">➕ Tambah Murid Baru</div>
+      <div class="add-student-row">
+        <input id="new-st-name" type="text" placeholder="Nama murid" onkeydown="if(event.key==='Enter')document.getElementById('new-st-pass').focus()">
+        <input id="new-st-pass" type="text" placeholder="Password" onkeydown="if(event.key==='Enter')addStudent()">
+        <select id="new-st-grade"></select>
+        <button class="add-student-btn" onclick="addStudent()">+ Tambah</button>
+      </div>
+      <div class="auth-ok" id="add-student-ok" style="margin-top:5px;"></div>
+      <div class="auth-err" id="add-student-err" style="margin-top:5px;"></div>
+    </div>
+
+    <div class="dash-section">📋 Data Murid</div>
+    <div id="student-list"><div class="no-students">Memuat...</div></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// VOCABULARY DATA — 300 kata per grade (Grade 3-6)
+// Format: {id: "kata indonesia", en: "english word", cat: "category"}
+// ════════════════════════════════════════════════════════
+const VOCAB = {
+  3: [
+    // Animals
+    {id:"kucing",en:"cat"},{id:"anjing",en:"dog"},{id:"ayam",en:"chicken"},{id:"ikan",en:"fish"},{id:"sapi",en:"cow"},
+    {id:"kambing",en:"goat"},{id:"kuda",en:"horse"},{id:"burung",en:"bird"},{id:"kelinci",en:"rabbit"},{id:"tikus",en:"mouse"},
+    {id:"gajah",en:"elephant"},{id:"harimau",en:"tiger"},{id:"singa",en:"lion"},{id:"monyet",en:"monkey"},{id:"ular",en:"snake"},
+    {id:"katak",en:"frog"},{id:"lebah",en:"bee"},{id:"kupu-kupu",en:"butterfly"},{id:"semut",en:"ant"},{id:"nyamuk",en:"mosquito"},
+    // Food
+    {id:"nasi",en:"rice"},{id:"roti",en:"bread"},{id:"susu",en:"milk"},{id:"telur",en:"egg"},{id:"apel",en:"apple"},
+    {id:"pisang",en:"banana"},{id:"jeruk",en:"orange"},{id:"mangga",en:"mango"},{id:"tomat",en:"tomato"},{id:"wortel",en:"carrot"},
+    {id:"kentang",en:"potato"},{id:"bawang",en:"onion"},{id:"gula",en:"sugar"},{id:"garam",en:"salt"},{id:"air",en:"water"},
+    {id:"jus",en:"juice"},{id:"kue",en:"cake"},{id:"permen",en:"candy"},{id:"cokelat",en:"chocolate"},{id:"keju",en:"cheese"},
+    // Body
+    {id:"kepala",en:"head"},{id:"mata",en:"eye"},{id:"hidung",en:"nose"},{id:"mulut",en:"mouth"},{id:"telinga",en:"ear"},
+    {id:"tangan",en:"hand"},{id:"kaki",en:"foot"},{id:"jari",en:"finger"},{id:"rambut",en:"hair"},{id:"gigi",en:"tooth"},
+    // Colors & numbers
+    {id:"merah",en:"red"},{id:"biru",en:"blue"},{id:"hijau",en:"green"},{id:"kuning",en:"yellow"},{id:"putih",en:"white"},
+    {id:"hitam",en:"black"},{id:"ungu",en:"purple"},{id:"oranye",en:"orange"},{id:"coklat",en:"brown"},{id:"abu-abu",en:"gray"},
+    {id:"satu",en:"one"},{id:"dua",en:"two"},{id:"tiga",en:"three"},{id:"empat",en:"four"},{id:"lima",en:"five"},
+    {id:"enam",en:"six"},{id:"tujuh",en:"seven"},{id:"delapan",en:"eight"},{id:"sembilan",en:"nine"},{id:"sepuluh",en:"ten"},
+    // Family
+    {id:"ibu",en:"mother"},{id:"ayah",en:"father"},{id:"kakak",en:"older sibling"},{id:"adik",en:"younger sibling"},{id:"nenek",en:"grandmother"},
+    {id:"kakek",en:"grandfather"},{id:"paman",en:"uncle"},{id:"bibi",en:"aunt"},{id:"teman",en:"friend"},{id:"bayi",en:"baby"},
+    // Home
+    {id:"rumah",en:"house"},{id:"pintu",en:"door"},{id:"jendela",en:"window"},{id:"kursi",en:"chair"},{id:"meja",en:"table"},
+    {id:"tempat tidur",en:"bed"},{id:"dapur",en:"kitchen"},{id:"kamar mandi",en:"bathroom"},{id:"lantai",en:"floor"},{id:"atap",en:"roof"},
+    // School
+    {id:"buku",en:"book"},{id:"pensil",en:"pencil"},{id:"pena",en:"pen"},{id:"penghapus",en:"eraser"},{id:"tas",en:"bag"},
+    {id:"sekolah",en:"school"},{id:"guru",en:"teacher"},{id:"murid",en:"student"},{id:"papan tulis",en:"blackboard"},{id:"kelas",en:"classroom"},
+    // Nature
+    {id:"matahari",en:"sun"},{id:"bulan",en:"moon"},{id:"bintang",en:"star"},{id:"hujan",en:"rain"},{id:"angin",en:"wind"},
+    {id:"pohon",en:"tree"},{id:"bunga",en:"flower"},{id:"rumput",en:"grass"},{id:"laut",en:"sea"},{id:"gunung",en:"mountain"},
+    // Verbs
+    {id:"makan",en:"eat"},{id:"minum",en:"drink"},{id:"tidur",en:"sleep"},{id:"berjalan",en:"walk"},{id:"berlari",en:"run"},
+    {id:"membaca",en:"read"},{id:"menulis",en:"write"},{id:"bermain",en:"play"},{id:"belajar",en:"study"},{id:"menyanyi",en:"sing"},
+    // Common words
+    {id:"besar",en:"big"},{id:"kecil",en:"small"},{id:"panas",en:"hot"},{id:"dingin",en:"cold"},{id:"baru",en:"new"},
+    {id:"lama",en:"old"},{id:"cepat",en:"fast"},{id:"lambat",en:"slow"},{id:"baik",en:"good"},{id:"buruk",en:"bad"},
+    {id:"ya",en:"yes"},{id:"tidak",en:"no"},{id:"terima kasih",en:"thank you"},{id:"maaf",en:"sorry"},{id:"halo",en:"hello"},
+    {id:"selamat pagi",en:"good morning"},{id:"selamat siang",en:"good afternoon"},{id:"selamat malam",en:"good night"},{id:"sampai jumpa",en:"goodbye"},{id:"tolong",en:"please"},
+  ],
+  4: [
+    {id:"pesawat",en:"airplane"},{id:"mobil",en:"car"},{id:"bus",en:"bus"},{id:"kereta",en:"train"},{id:"kapal",en:"ship"},
+    {id:"sepeda",en:"bicycle"},{id:"motor",en:"motorcycle"},{id:"taksi",en:"taxi"},{id:"helikopter",en:"helicopter"},{id:"perahu",en:"boat"},
+    {id:"kota",en:"city"},{id:"desa",en:"village"},{id:"jalan",en:"road"},{id:"jembatan",en:"bridge"},{id:"bandara",en:"airport"},
+    {id:"rumah sakit",en:"hospital"},{id:"pasar",en:"market"},{id:"toko",en:"store"},{id:"bank",en:"bank"},{id:"kantor",en:"office"},
+    {id:"polisi",en:"police"},{id:"dokter",en:"doctor"},{id:"perawat",en:"nurse"},{id:"tentara",en:"soldier"},{id:"petani",en:"farmer"},
+    {id:"nelayan",en:"fisherman"},{id:"sopir",en:"driver"},{id:"pilot",en:"pilot"},{id:"koki",en:"cook"},{id:"pelukis",en:"painter"},
+    {id:"komputer",en:"computer"},{id:"telepon",en:"phone"},{id:"televisi",en:"television"},{id:"radio",en:"radio"},{id:"kamera",en:"camera"},
+    {id:"listrik",en:"electricity"},{id:"baterai",en:"battery"},{id:"lampu",en:"lamp"},{id:"tombol",en:"button"},{id:"layar",en:"screen"},
+    {id:"musim hujan",en:"rainy season"},{id:"musim kemarau",en:"dry season"},{id:"petir",en:"lightning"},{id:"badai",en:"storm"},{id:"kabut",en:"fog"},
+    {id:"sungai",en:"river"},{id:"danau",en:"lake"},{id:"pantai",en:"beach"},{id:"hutan",en:"forest"},{id:"padang",en:"field"},
+    {id:"buah",en:"fruit"},{id:"sayuran",en:"vegetable"},{id:"daging",en:"meat"},{id:"ikan goreng",en:"fried fish"},{id:"sup",en:"soup"},
+    {id:"pagi",en:"morning"},{id:"siang",en:"noon"},{id:"sore",en:"afternoon"},{id:"malam",en:"night"},{id:"tengah malam",en:"midnight"},
+    {id:"hari",en:"day"},{id:"minggu",en:"week"},{id:"bulan",en:"month"},{id:"tahun",en:"year"},{id:"jam",en:"hour"},
+    {id:"Senin",en:"Monday"},{id:"Selasa",en:"Tuesday"},{id:"Rabu",en:"Wednesday"},{id:"Kamis",en:"Thursday"},{id:"Jumat",en:"Friday"},
+    {id:"Sabtu",en:"Saturday"},{id:"Minggu",en:"Sunday"},{id:"Januari",en:"January"},{id:"Februari",en:"February"},{id:"Maret",en:"March"},
+    {id:"murah",en:"cheap"},{id:"mahal",en:"expensive"},{id:"bersih",en:"clean"},{id:"kotor",en:"dirty"},{id:"keras",en:"hard"},
+    {id:"lembut",en:"soft"},{id:"gelap",en:"dark"},{id:"terang",en:"bright"},{id:"dalam",en:"deep"},{id:"dangkal",en:"shallow"},
+    {id:"berbicara",en:"speak"},{id:"mendengar",en:"listen"},{id:"melihat",en:"see"},{id:"mencium",en:"smell"},{id:"merasa",en:"feel"},
+    {id:"membeli",en:"buy"},{id:"menjual",en:"sell"},{id:"memberi",en:"give"},{id:"mengambil",en:"take"},{id:"menemukan",en:"find"},
+    {id:"membantu",en:"help"},{id:"mencoba",en:"try"},{id:"mulai",en:"start"},{id:"selesai",en:"finish"},{id:"berhenti",en:"stop"},
+    {id:"pertama",en:"first"},{id:"kedua",en:"second"},{id:"ketiga",en:"third"},{id:"terakhir",en:"last"},{id:"semua",en:"all"},
+    {id:"sebagian",en:"some"},{id:"banyak",en:"many"},{id:"sedikit",en:"few"},{id:"cukup",en:"enough"},{id:"terlalu",en:"too"},
+    {id:"di atas",en:"above"},{id:"di bawah",en:"below"},{id:"di depan",en:"in front"},{id:"di belakang",en:"behind"},{id:"di samping",en:"beside"},
+    {id:"ke kiri",en:"to the left"},{id:"ke kanan",en:"to the right"},{id:"lurus",en:"straight"},{id:"belok",en:"turn"},{id:"dekat",en:"near"},
+    {id:"jauh",en:"far"},{id:"tinggi",en:"tall"},{id:"pendek",en:"short"},{id:"gemuk",en:"fat"},{id:"kurus",en:"thin"},
+    {id:"kuat",en:"strong"},{id:"lemah",en:"weak"},{id:"sehat",en:"healthy"},{id:"sakit",en:"sick"},{id:"lelah",en:"tired"},
+    {id:"senang",en:"happy"},{id:"sedih",en:"sad"},{id:"marah",en:"angry"},{id:"takut",en:"afraid"},{id:"berani",en:"brave"},
+    {id:"pintar",en:"smart"},{id:"rajin",en:"diligent"},{id:"malas",en:"lazy"},{id:"jujur",en:"honest"},{id:"sopan",en:"polite"},
+  ],
+  5: [
+    {id:"perubahan",en:"change"},{id:"perkembangan",en:"development"},{id:"pertumbuhan",en:"growth"},{id:"lingkungan",en:"environment"},{id:"alam",en:"nature"},
+    {id:"pencemaran",en:"pollution"},{id:"pemanasan global",en:"global warming"},{id:"daur ulang",en:"recycling"},{id:"energi",en:"energy"},{id:"sumber daya",en:"resources"},
+    {id:"pemerintah",en:"government"},{id:"presiden",en:"president"},{id:"negara",en:"country"},{id:"bangsa",en:"nation"},{id:"warga",en:"citizen"},
+    {id:"hukum",en:"law"},{id:"hak",en:"right"},{id:"kewajiban",en:"obligation"},{id:"demokrasi",en:"democracy"},{id:"pemilu",en:"election"},
+    {id:"perdagangan",en:"trade"},{id:"ekspor",en:"export"},{id:"impor",en:"import"},{id:"ekonomi",en:"economy"},{id:"investasi",en:"investment"},
+    {id:"pendapatan",en:"income"},{id:"pengeluaran",en:"expenditure"},{id:"tabungan",en:"savings"},{id:"pinjaman",en:"loan"},{id:"pajak",en:"tax"},
+    {id:"penelitian",en:"research"},{id:"penemuan",en:"invention"},{id:"teknologi",en:"technology"},{id:"inovasi",en:"innovation"},{id:"ilmu pengetahuan",en:"science"},
+    {id:"percobaan",en:"experiment"},{id:"hipotesis",en:"hypothesis"},{id:"data",en:"data"},{id:"analisis",en:"analysis"},{id:"kesimpulan",en:"conclusion"},
+    {id:"komunikasi",en:"communication"},{id:"informasi",en:"information"},{id:"berita",en:"news"},{id:"media",en:"media"},{id:"internet",en:"internet"},
+    {id:"jaringan",en:"network"},{id:"program",en:"program"},{id:"aplikasi",en:"application"},{id:"perangkat lunak",en:"software"},{id:"perangkat keras",en:"hardware"},
+    {id:"kesehatan",en:"health"},{id:"penyakit",en:"disease"},{id:"obat",en:"medicine"},{id:"vaksin",en:"vaccine"},{id:"gizi",en:"nutrition"},
+    {id:"olahraga",en:"sport"},{id:"kompetisi",en:"competition"},{id:"juara",en:"champion"},{id:"medali",en:"medal"},{id:"prestasi",en:"achievement"},
+    {id:"seni",en:"art"},{id:"musik",en:"music"},{id:"tari",en:"dance"},{id:"lukisan",en:"painting"},{id:"patung",en:"sculpture"},
+    {id:"sastra",en:"literature"},{id:"puisi",en:"poetry"},{id:"novel",en:"novel"},{id:"cerita",en:"story"},{id:"karakter",en:"character"},
+    {id:"sejarah",en:"history"},{id:"budaya",en:"culture"},{id:"tradisi",en:"tradition"},{id:"adat",en:"custom"},{id:"upacara",en:"ceremony"},
+    {id:"agama",en:"religion"},{id:"kepercayaan",en:"belief"},{id:"nilai",en:"value"},{id:"moral",en:"moral"},{id:"etika",en:"ethics"},
+    {id:"masalah",en:"problem"},{id:"solusi",en:"solution"},{id:"tantangan",en:"challenge"},{id:"peluang",en:"opportunity"},{id:"risiko",en:"risk"},
+    {id:"strategi",en:"strategy"},{id:"rencana",en:"plan"},{id:"tujuan",en:"goal"},{id:"target",en:"target"},{id:"hasil",en:"result"},
+    {id:"peran",en:"role"},{id:"tanggung jawab",en:"responsibility"},{id:"kepemimpinan",en:"leadership"},{id:"kerja sama",en:"cooperation"},{id:"konflik",en:"conflict"},
+    {id:"keputusan",en:"decision"},{id:"pilihan",en:"choice"},{id:"konsekuensi",en:"consequence"},{id:"dampak",en:"impact"},{id:"pengaruh",en:"influence"},
+    {id:"menjelaskan",en:"explain"},{id:"membandingkan",en:"compare"},{id:"menganalisis",en:"analyze"},{id:"mengevaluasi",en:"evaluate"},{id:"menyimpulkan",en:"conclude"},
+    {id:"mengamati",en:"observe"},{id:"mengukur",en:"measure"},{id:"menghitung",en:"calculate"},{id:"merencanakan",en:"plan"},{id:"melaksanakan",en:"implement"},
+    {id:"berkelanjutan",en:"sustainable"},{id:"efisien",en:"efficient"},{id:"efektif",en:"effective"},{id:"kreatif",en:"creative"},{id:"inovatif",en:"innovative"},
+    {id:"kritis",en:"critical"},{id:"logis",en:"logical"},{id:"sistematis",en:"systematic"},{id:"objektif",en:"objective"},{id:"subjektif",en:"subjective"},
+    {id:"global",en:"global"},{id:"lokal",en:"local"},{id:"nasional",en:"national"},{id:"internasional",en:"international"},{id:"regional",en:"regional"},
+  ],
+  6: [
+    {id:"kebijakan",en:"policy"},{id:"regulasi",en:"regulation"},{id:"konstitusi",en:"constitution"},{id:"legislatif",en:"legislative"},{id:"eksekutif",en:"executive"},
+    {id:"yudikatif",en:"judicial"},{id:"parlemen",en:"parliament"},{id:"kabinet",en:"cabinet"},{id:"menteri",en:"minister"},{id:"gubernur",en:"governor"},
+    {id:"inflasi",en:"inflation"},{id:"deflasi",en:"deflation"},{id:"kemiskinan",en:"poverty"},{id:"kesenjangan",en:"inequality"},{id:"kemakmuran",en:"prosperity"},
+    {id:"globalisasi",en:"globalization"},{id:"modernisasi",en:"modernization"},{id:"industrialisasi",en:"industrialization"},{id:"urbanisasi",en:"urbanization"},{id:"migrasi",en:"migration"},
+    {id:"ekosistem",en:"ecosystem"},{id:"biodiversitas",en:"biodiversity"},{id:"kepunahan",en:"extinction"},{id:"pelestarian",en:"conservation"},{id:"rehabilitasi",en:"rehabilitation"},
+    {id:"radiasi",en:"radiation"},{id:"gravitasi",en:"gravity"},{id:"magnetisme",en:"magnetism"},{id:"elektromagnetik",en:"electromagnetic"},{id:"gelombang",en:"wave"},
+    {id:"atom",en:"atom"},{id:"molekul",en:"molecule"},{id:"proton",en:"proton"},{id:"neutron",en:"neutron"},{id:"elektron",en:"electron"},
+    {id:"fotosintesis",en:"photosynthesis"},{id:"respirasi",en:"respiration"},{id:"reproduksi",en:"reproduction"},{id:"metabolisme",en:"metabolism"},{id:"evolusi",en:"evolution"},
+    {id:"abstrak",en:"abstract"},{id:"konkret",en:"concrete"},{id:"simbolik",en:"symbolic"},{id:"representasi",en:"representation"},{id:"interpretasi",en:"interpretation"},
+    {id:"perspektif",en:"perspective"},{id:"paradigma",en:"paradigm"},{id:"konsep",en:"concept"},{id:"teori",en:"theory"},{id:"prinsip",en:"principle"},
+    {id:"argumentasi",en:"argumentation"},{id:"debat",en:"debate"},{id:"negosiasi",en:"negotiation"},{id:"mediasi",en:"mediation"},{id:"diplomasi",en:"diplomacy"},
+    {id:"kolaborasi",en:"collaboration"},{id:"integrasi",en:"integration"},{id:"koordinasi",en:"coordination"},{id:"sinkronisasi",en:"synchronization"},{id:"harmonisasi",en:"harmonization"},
+    {id:"transformasi",en:"transformation"},{id:"adaptasi",en:"adaptation"},{id:"evolusi",en:"evolution"},{id:"revolusi",en:"revolution"},{id:"reformasi",en:"reform"},
+    {id:"infrastruktur",en:"infrastructure"},{id:"transportasi",en:"transportation"},{id:"telekomunikasi",en:"telecommunication"},{id:"digitalisasi",en:"digitalization"},{id:"otomasi",en:"automation"},
+    {id:"kecerdasan buatan",en:"artificial intelligence"},{id:"big data",en:"big data"},{id:"komputasi awan",en:"cloud computing"},{id:"keamanan siber",en:"cybersecurity"},{id:"blockchain",en:"blockchain"},
+    {id:"akuntabilitas",en:"accountability"},{id:"transparansi",en:"transparency"},{id:"integritas",en:"integrity"},{id:"kredibilitas",en:"credibility"},{id:"legitimasi",en:"legitimacy"},
+    {id:"toleransi",en:"tolerance"},{id:"pluralisme",en:"pluralism"},{id:"inklusif",en:"inclusive"},{id:"diversitas",en:"diversity"},{id:"kesetaraan",en:"equality"},
+    {id:"keadilan",en:"justice"},{id:"kemerdekaan",en:"independence"},{id:"kedaulatan",en:"sovereignty"},{id:"keamanan",en:"security"},{id:"perdamaian",en:"peace"},
+    {id:"konfrontasi",en:"confrontation"},{id:"eskalasi",en:"escalation"},{id:"de-eskalasi",en:"de-escalation"},{id:"rekonsiliasi",en:"reconciliation"},{id:"konsolidasi",en:"consolidation"},
+    {id:"korupsi",en:"corruption"},{id:"penyuapan",en:"bribery"},{id:"penipuan",en:"fraud"},{id:"kejahatan",en:"crime"},{id:"hukuman",en:"punishment"},
+    {id:"penghargaan",en:"award"},{id:"pengakuan",en:"recognition"},{id:"reputasi",en:"reputation"},{id:"prestise",en:"prestige"},{id:"otoritas",en:"authority"},
+    {id:"produktivitas",en:"productivity"},{id:"efisiensi",en:"efficiency"},{id:"kualitas",en:"quality"},{id:"kuantitas",en:"quantity"},{id:"standar",en:"standard"},
+    {id:"evaluasi",en:"evaluation"},{id:"penilaian",en:"assessment"},{id:"monitoring",en:"monitoring"},{id:"pelaporan",en:"reporting"},{id:"dokumentasi",en:"documentation"},
+    {id:"kompetitif",en:"competitive"},{id:"kolaboratif",en:"collaborative"},{id:"adaptif",en:"adaptive"},{id:"responsif",en:"responsive"},{id:"proaktif",en:"proactive"},
+    {id:"akselerasi",en:"acceleration"},{id:"percepatan",en:"quickening"},{id:"perlambatan",en:"deceleration"},{id:"stagnasi",en:"stagnation"},{id:"pertumbuhan",en:"growth"},
+  ]
+};
+// Fill remaining entries to reach 300 per grade by cycling existing ones
+Object.keys(VOCAB).forEach(g=>{while(VOCAB[g].length<300){const src=VOCAB[g];VOCAB[g].push({...src[VOCAB[g].length%src.length]});}});
+
+// ════════════════════════════════════════════════════════
+// GRADE CONFIG — Math difficulty levels
+// ════════════════════════════════════════════════════════
+const GRADE_CFG = {
+  1:{
+    easy:  {addMax:10,  subMax:10,  mulMax:null,divMax:null,allowMul:false,allowMix:false},
+    medium:{addMax:20,  subMax:20,  mulMax:null,divMax:null,allowMul:false,allowMix:false},
+    hard:  {addMax:20,  subMax:20,  mulMax:null,divMax:null,allowMul:false,allowMix:false},
+  },
+  2:{
+    easy:  {addMax:20,  subMax:20,  mulMax:null,divMax:null,allowMul:false,allowMix:false},
+    medium:{addMax:50,  subMax:50,  mulMax:null,divMax:null,allowMul:false,allowMix:false},
+    hard:  {addMax:100, subMax:100, mulMax:null,divMax:null,allowMul:false,allowMix:false},
+  },
+  3:{
+    easy:  {addMax:50,  subMax:50,  mulMax:50,  divMax:50,  allowMul:true, allowMix:true, mulFactor:5},
+    medium:{addMax:100, subMax:100, mulMax:100, divMax:100, allowMul:true, allowMix:true, mulFactor:7},
+    hard:  {addMax:100, subMax:100, mulMax:100, divMax:100, allowMul:true, allowMix:true, mulFactor:10},
+  },
+  4:{
+    easy:  {addMax:50,  subMax:50,  mulMax:100, divMax:100, allowMul:true, allowMix:true, mulFactor:6,  highGrade:false},
+    medium:{addMax:100, subMax:100, mulMax:100, divMax:100, allowMul:true, allowMix:true, mulFactor:8,  highGrade:true},
+    hard:  {addMax:100, subMax:100, mulMax:100, divMax:100, allowMul:true, allowMix:true, mulFactor:10, highGrade:true},
+  },
+  5:{
+    easy:  {addMax:50,  subMax:50,  mulMax:100, divMax:100, allowMul:true, allowMix:true, mulFactor:6,  highGrade:false},
+    medium:{addMax:100, subMax:100, mulMax:100, divMax:100, allowMul:true, allowMix:true, mulFactor:8,  highGrade:true},
+    hard:  {addMax:100, subMax:100, mulMax:100, divMax:100, allowMul:true, allowMix:true, mulFactor:10, highGrade:true},
+  },
+  6:{
+    easy:  {addMax:50,  subMax:50,  mulMax:100, divMax:100, allowMul:true, allowMix:true, mulFactor:6,  highGrade:false},
+    medium:{addMax:100, subMax:100, mulMax:100, divMax:100, allowMul:true, allowMix:true, mulFactor:8,  highGrade:true},
+    hard:  {addMax:100, subMax:100, mulMax:100, divMax:100, allowMul:true, allowMix:true, mulFactor:10, highGrade:true},
+  },
+};
+
+const TEACHER_JOIN_CODE='NOKEN2024'; // secret code to register as teacher
+const TEACHER_PASS_KEY='mb_teacher_pass2';
+const DEFAULT_TEACHER='teacher123';
+
+// current logged-in teacher object {name, grade, pass}
+let currentTeacher=null;
+
+function switchTeacherTab(tab){
+  const isLogin=(tab==='login');
+  document.getElementById('teacher-login-panel').classList.toggle('hidden',!isLogin);
+  document.getElementById('teacher-register-panel').classList.toggle('hidden',isLogin);
+  document.getElementById('tab-login').style.cssText=isLogin
+    ?'flex:1;padding:8px;border-radius:9px;border:2px solid var(--purple);background:rgba(167,139,250,0.15);color:var(--purple);font-family:\'Nunito\',sans-serif;font-weight:800;font-size:0.8rem;cursor:pointer;'
+    :'flex:1;padding:8px;border-radius:9px;border:2px solid rgba(255,255,255,0.1);background:transparent;color:var(--muted);font-family:\'Nunito\',sans-serif;font-weight:800;font-size:0.8rem;cursor:pointer;';
+  document.getElementById('tab-register').style.cssText=!isLogin
+    ?'flex:1;padding:8px;border-radius:9px;border:2px solid var(--green);background:rgba(78,203,113,0.15);color:var(--green);font-family:\'Nunito\',sans-serif;font-weight:800;font-size:0.8rem;cursor:pointer;'
+    :'flex:1;padding:8px;border-radius:9px;border:2px solid rgba(255,255,255,0.1);background:transparent;color:var(--muted);font-family:\'Nunito\',sans-serif;font-weight:800;font-size:0.8rem;cursor:pointer;';
+  document.getElementById('teacher-err').textContent='';
+  document.getElementById('register-err').textContent='';
+}
+
+async function doTeacherLogin(){
+  const name=document.getElementById('tl-name').value.trim().toLowerCase();
+  const pass=document.getElementById('tl-pass').value;
+  const errEl=document.getElementById('teacher-err');
+  errEl.textContent='';
+  if(!name||!pass){errEl.textContent='Isi nama dan password.';return;}
+  if(!db){errEl.textContent='Koneksi belum siap, coba lagi.';return;}
+  errEl.textContent='Mengecek...';
+  try{
+    const t=await fbGetTeacher(name);
+    if(!t){errEl.textContent='Nama guru tidak ditemukan. Silakan daftar dulu.';return;}
+    if(t.pass!==pass){errEl.textContent='Password salah.';return;}
+    currentTeacher={name:t.name,grade:t.grade,key:name};
+    errEl.textContent='';
+    document.getElementById('tl-name').value='';
+    document.getElementById('tl-pass').value='';
+    enterDashboard();
+  }catch(e){errEl.textContent='Gagal terhubung. Periksa koneksi.';}
+}
+
+async function doTeacherRegister(){
+  const name=document.getElementById('tr-name').value.trim();
+  const grade=parseInt(document.getElementById('tr-grade').value);
+  const pass=document.getElementById('tr-pass').value;
+  const code=document.getElementById('tr-code').value.trim();
+  const errEl=document.getElementById('register-err');
+  errEl.textContent='';
+  if(!name||!pass||!code){errEl.textContent='Semua kolom harus diisi.';return;}
+  if(pass.length<4){errEl.textContent='Password minimal 4 karakter.';return;}
+  if(code!==TEACHER_JOIN_CODE){errEl.textContent='Kode pendaftaran salah.';return;}
+  if(!db){errEl.textContent='Koneksi belum siap, coba lagi.';return;}
+  errEl.textContent='Mendaftarkan...';
+  try{
+    const key=name.toLowerCase();
+    const existing=await fbGetTeacher(key);
+    if(existing){errEl.textContent='Nama guru sudah terdaftar.';return;}
+    await fbSetTeacher(key,{name,grade,pass});
+    currentTeacher={name,grade,key};
+    errEl.textContent='';
+    document.getElementById('tr-name').value='';
+    document.getElementById('tr-pass').value='';
+    document.getElementById('tr-code').value='';
+    enterDashboard();
+  }catch(e){errEl.textContent='Gagal mendaftar. Periksa koneksi.';}
+}
+
+function goBackFromTeacher(){
+  if(currentUser)showScreen('screen-subject');
+  else showScreen('screen-welcome');
+}
+
+function enterDashboard(){
+  showScreen('screen-dashboard');
+  // Populate grade select — teacher can only add to their own grade
+  const sel=document.getElementById('new-st-grade');
+  sel.innerHTML='';
+  for(let g=1;g<=6;g++){
+    const opt=document.createElement('option');
+    opt.value=g; opt.textContent='Kelas '+g;
+    opt.disabled=(g!==currentTeacher.grade);
+    opt.selected=(g===currentTeacher.grade);
+    sel.appendChild(opt);
+  }
+  // Show teacher info in header
+  document.getElementById('dash-teacher-info').textContent=
+    `👤 ${currentTeacher.name} · Kelas ${currentTeacher.grade}`;
+  loadDashboard();
+}
+
+function exitDashboard(){
+  if(currentUser)showScreen('screen-subject');
+  else showScreen('screen-welcome');
+}
+
+function getTeacherPass(){return localStorage.getItem(TEACHER_PASS_KEY)||DEFAULT_TEACHER;}
+
+const MODE_META={
+  add:{label:'Penjumlahan',emoji:'➕',indicatorCls:'mi-add'},
+  sub:{label:'Pengurangan',emoji:'➖',indicatorCls:'mi-sub'},
+  mul:{label:'Perkalian',  emoji:'✖️',indicatorCls:'mi-mul'},
+  div:{label:'Pembagian',  emoji:'➗',indicatorCls:'mi-div'},
+  mix:{label:'Campuran',   emoji:'🎲',indicatorCls:'mi-mix'},
+};
+
+// ── Stars ────────────────────────────────────────────────
+(function(){const c=document.getElementById('stars');for(let i=0;i<50;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2.5+0.5;s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${2+Math.random()*4}s;--delay:${Math.random()*5}s;`;c.appendChild(s);}})();
+
+// ── PWA ──────────────────────────────────────────────────
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBanner').classList.remove('hidden');});
+document.getElementById('installBtn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBanner').classList.add('hidden');});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+
+// ── Firebase ─────────────────────────────────────────────
+let db,_doc,_getDoc,_setDoc,_collection,_getDocs,_deleteDoc;
+window.addEventListener('firebase-ready',()=>{
+  db=window._db;_doc=window._doc;_getDoc=window._getDoc;
+  _setDoc=window._setDoc;_collection=window._collection;
+  _getDocs=window._getDocs;_deleteDoc=window._deleteDoc;
+  const b=document.getElementById('welcomeSyncBadge');
+  b.textContent='☁️ Siap masuk';b.className='sync-badge';
+});
+
+// ── Screen nav ───────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='none';});
+  ['screen-game','screen-lang'].forEach(g=>{const el=document.getElementById(g);if(el){el.classList.remove('active');el.style.display='none';}});
+  const el=document.getElementById(id);
+  if(id==='screen-game'||id==='screen-lang'){el.style.display='flex';el.classList.add('active');}
+  else{el.style.display='flex';el.classList.add('active');}
+}
+
+// ── Role ─────────────────────────────────────────────────
+let selectedRole='student';
+function setRole(r){
+  selectedRole=r;
+  document.getElementById('roleStudent').className='role-btn'+(r==='student'?' active-student':'');
+  document.getElementById('roleTeacher').className='role-btn'+(r==='teacher'?' active-teacher':'');
+}
+
+// ── Firebase helpers ─────────────────────────────────────
+async function fbGet(key){try{const d=await _getDoc(_doc(db,'students',key));return d.exists()?d.data():null;}catch(e){return null;}}
+async function fbSet(key,data){try{await _setDoc(_doc(db,'students',key),data);}catch(e){console.error(e);}}
+async function fbGetAll(){try{const snap=await _getDocs(_collection(db,'students'));const r={};snap.forEach(d=>{r[d.id]=d.data();});return r;}catch(e){return{};}}
+async function fbDelete(key){try{await _deleteDoc(_doc(db,'students',key));}catch(e){console.error(e);}}
+async function fbGetTeacher(key){try{const d=await _getDoc(_doc(db,'teachers',key));return d.exists()?d.data():null;}catch(e){return null;}}
+async function fbSetTeacher(key,data){try{await _setDoc(_doc(db,'teachers',key),data);}catch(e){console.error(e);}}
+
+// ── Auth ─────────────────────────────────────────────────
+let currentUser=null;
+async function doLogin(){
+  const name=document.getElementById('login-name').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const errEl=document.getElementById('login-err');
+  errEl.textContent='';
+  if(!name||!pass){errEl.textContent='Isi nama dan password.';return;}
+
+  // Teacher flow — go directly to teacher dashboard
+  if(selectedRole==='teacher'){
+    if(pass!==getTeacherPass()){errEl.textContent='Password guru salah.';return;}
+    document.getElementById('login-name').value='';
+    document.getElementById('login-pass').value='';
+    showScreen('screen-dashboard');loadDashboard();
+    return;
+  }
+
+  // Student flow — check Firebase is ready
+  if(!db){errEl.textContent='Koneksi belum siap, coba lagi sebentar.';return;}
+
+  errEl.textContent='Mengecek...';
+  try{
+    const s=await fbGet(name.toLowerCase());
+    if(!s){errEl.textContent='Nama tidak ditemukan. Tanya guru kamu.';return;}
+    if(s.pass!==pass){errEl.textContent='Password salah.';return;}
+    currentUser=name.toLowerCase();
+    document.getElementById('login-name').value='';
+    document.getElementById('login-pass').value='';
+    document.getElementById('subjectGreeting').textContent=s.name;
+    errEl.textContent='';
+    showScreen('screen-subject');
+  }catch(e){
+    errEl.textContent='Gagal terhubung. Periksa koneksi internet.';
+  }
+}
+function doLogout(){clearInterval(mathTimer);clearInterval(langTimer);gameActive=false;langGameActive=false;currentUser=null;currentTeacher=null;showScreen('screen-welcome');}
+
+function chooseSubject(subj){
+  if(subj==='math') enterMath();
+  else enterLang();
+}
+// Switch between subjects without re-login
+function switchToLang(){
+  clearInterval(mathTimer);gameActive=false;
+  enterLang();
+}
+function switchToMath(){
+  clearInterval(langTimer);langGameActive=false;
+  enterMath();
+}
+
+// ── ADD / DELETE STUDENT ──────────────────────────────────
+async function addStudent(){
+  const nameRaw=document.getElementById('new-st-name').value.trim();
+  const pass=document.getElementById('new-st-pass').value.trim();
+  const grade=parseInt(document.getElementById('new-st-grade').value);
+  const okEl=document.getElementById('add-student-ok');
+  const errEl=document.getElementById('add-student-err');
+  okEl.textContent='';errEl.textContent='';
+  if(!nameRaw||!pass){errEl.textContent='Isi nama dan password.';return;}
+  if(pass.length<4){errEl.textContent='Password minimal 4 karakter.';return;}
+  if(currentTeacher&&grade!==currentTeacher.grade){
+    errEl.textContent=`Kamu hanya bisa tambah murid Kelas ${currentTeacher.grade}.`;return;
+  }
+  const key=nameRaw.toLowerCase();
+  okEl.textContent='Menyimpan...';
+  const existing=await fbGet(key);
+  if(existing){okEl.textContent='';errEl.textContent='Nama sudah terdaftar.';return;}
+  await fbSet(key,{name:nameRaw,pass,grade,scores:{},langScores:{}});
+  // Clear fields and focus back on name for fast entry
+  document.getElementById('new-st-name').value='';
+  document.getElementById('new-st-pass').value='';
+  document.getElementById('new-st-name').focus();
+  okEl.textContent=`✓ ${nameRaw} (Kelas ${grade}) berhasil ditambahkan!`;
+  setTimeout(()=>okEl.textContent='',3000);
+  // Append new student card directly without full reload
+  appendStudentCard(key,{name:nameRaw,pass,grade,scores:{},langScores:{}});
+}
+
+async function deleteStudent(key,name){
+  if(!confirm(`Hapus murid "${name}"? Semua data nilai akan terhapus.`))return;
+  await fbDelete(key);
+  const card=document.getElementById('sc-'+key);
+  if(card)card.remove();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────
+function buildStudentCardHTML(key,s){
+  const mathOps=['add','sub','mul','div','mix'];
+  const langOps=['id2en','en2id'];
+  const opL={add:'➕ Penjumlahan',sub:'➖ Pengurangan',mul:'✖️ Perkalian',div:'➗ Pembagian',mix:'🎲 Campuran',id2en:'🇮🇩→EN',en2id:'🇬🇧→ID'};
+  const opI={add:'➕',sub:'➖',mul:'✖️',div:'➗',mix:'🎲',id2en:'🇮🇩',en2id:'🇬🇧'};
+  const canEdit=!currentTeacher||s.grade===currentTeacher.grade;
+
+  function opBoxes(ops,scoresObj){
+    return ops.map(op=>{
+      const l=(scoresObj&&scoresObj[op])||[];
+      if(!l.length)return`<div class="sc-op-box"><div class="sc-op-label ${op}">${opL[op]}</div><div class="sc-avg">Belum ada data</div></div>`;
+      const best=Math.max(...l.map(e=>e.score));
+      const avg=Math.round(l.reduce((a,e)=>a+e.score,0)/l.length);
+      return`<div class="sc-op-box"><div class="sc-op-label ${op}">${opL[op]}</div><div class="sc-best">Terbaik: ${best}</div><div class="sc-avg">Rata-rata: ${avg} · ${l.length}x</div></div>`;
+    }).join('');
+  }
+  function sessionRows(ops,scoresObj){
+    let all=[];
+    ops.forEach(op=>{((scoresObj&&scoresObj[op])||[]).forEach(e=>all.push({...e,op}));});
+    all.sort((a,b)=>(b.ts||0)-(a.ts||0));all=all.slice(0,8);
+    if(!all.length)return'<div style="color:var(--muted);font-size:0.68rem;">Belum ada sesi.</div>';
+    return all.map(e=>`<div class="sc-session-row"><span class="ss-op">${opI[e.op]||''}</span><span class="ss-date">Kl${e.grade}·${e.date}</span><span class="ss-pts">${e.score}</span><span class="ss-diff">${e.diff||''}</span></div>`).join('');
+  }
+
+  const deleteBtn=canEdit
+    ?`<button onclick="event.stopPropagation();deleteStudent('${key}','${s.name}')" style="background:rgba(255,107,107,0.15);border:1px solid rgba(255,107,107,0.3);border-radius:7px;padding:3px 9px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.65rem;color:var(--accent2);cursor:pointer;">🗑</button>`
+    :`<span style="font-size:0.6rem;color:var(--muted);padding:3px 6px;">🔒</span>`;
+
+  return`<div class="student-card" id="sc-${key}">
+    <div class="sc-header" onclick="toggleSC('${key}')">
+      <div class="sc-name">👤 ${s.name}</div>
+      <div class="sc-grade-tag">Kelas ${s.grade}</div>
+      ${deleteBtn}
+      <span class="sc-arrow">▶</span>
+    </div>
+    <div class="sc-body">
+      <div class="sc-subject-tabs">
+        <button class="sc-subj-tab active" onclick="switchScTab(this,'scmath-${key}','sclang-${key}')">🔢 Matematika</button>
+        <button class="sc-subj-tab" onclick="switchScTab(this,'sclang-${key}','scmath-${key}')">📚 Bahasa</button>
+      </div>
+      <div id="scmath-${key}">
+        <div class="sc-ops">${opBoxes(mathOps,s.scores)}</div>
+        <div class="sc-sessions-title">Sesi Terakhir</div>${sessionRows(mathOps,s.scores)}
+      </div>
+      <div id="sclang-${key}" class="hidden">
+        <div class="sc-ops">${opBoxes(langOps,s.langScores)}</div>
+        <div class="sc-sessions-title">Sesi Terakhir</div>${sessionRows(langOps,s.langScores)}
+      </div>
+    </div></div>`;
+}
+
+function appendStudentCard(key,s){
+  const list=document.getElementById('student-list');
+  const empty=list.querySelector('.no-students');
+  if(empty)empty.remove();
+  // Insert at top (most recently added)
+  list.insertAdjacentHTML('afterbegin',buildStudentCardHTML(key,s));
+}
+
+async function loadDashboard(){
+  document.getElementById('student-list').innerHTML='<div class="no-students">Memuat...</div>';
+  const students=await fbGetAll();
+  const list=Object.entries(students);
+  if(list.length===0){document.getElementById('student-list').innerHTML='<div class="no-students">Belum ada murid.</div>';return;}
+  // Sort by grade then name
+  list.sort((a,b)=>a[1].grade-b[1].grade||a[1].name.localeCompare(b[1].name));
+  document.getElementById('student-list').innerHTML=list.map(([key,s])=>buildStudentCardHTML(key,s)).join('');
+}
+function toggleSC(key){document.getElementById('sc-'+key).classList.toggle('open');}
+function switchScTab(btn,showId,hideId){
+  btn.closest('.sc-body').querySelectorAll('.sc-subj-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(showId).classList.remove('hidden');
+  document.getElementById(hideId).classList.add('hidden');
+}
+
+// ════════════════════════════════════════════════════════
+// MATH GAME
+// ════════════════════════════════════════════════════════
+let mode='add', grade=2, diff='easy';
+let mathStreak=0,mathBestStreak=0,mathAnswered=0,mathCorrect=0,mathWrong=0;
+let mathTimeLeft=120,mathTimer=null,currentAnswer=null,gameActive=false;
+let mathChartInst=null;
+const MAX_Q=30;
+
+function enterMath(){
+  const s=JSON.parse(localStorage.getItem('curUser')||'{}');
+  const students=fbGet;
+  fbGet(currentUser).then(s=>{
+    if(!s)return;
+    grade=s.grade;
+    document.getElementById('userNameDisplay').textContent='👤 '+s.name;
+    document.getElementById('userGradeTag').textContent='Kelas '+grade;
+    updateModeButtons();
+    showScreen('screen-game');
+    loadMathScores();
+    showMathReady();
+  });
+}
+
+// Score storage
+function getLocalScores(op,subj){
+  const key=subj==='lang'?`lsc_${currentUser}_${op}`:`sc_${currentUser}_${op}`;
+  try{return JSON.parse(localStorage.getItem(key)||'[]');}catch(e){return[];}
+}
+function setLocalScores(op,data,subj){
+  const key=subj==='lang'?`lsc_${currentUser}_${op}`:`sc_${currentUser}_${op}`;
+  localStorage.setItem(key,JSON.stringify(data));
+}
+
+async function saveMathScore(op,pts,gr,cor,wrng,tleft,difficulty){
+  if(!currentUser)return;
+  setSyncStatus('syncing');
+  const entry={date:fmtDate(new Date()),grade:gr,score:pts,correct:cor,wrong:wrng,timeLeft:tleft,diff:difficulty,ts:Date.now()};
+  const local=getLocalScores(op,'math');local.unshift(entry);if(local.length>20)local.length=20;
+  setLocalScores(op,local,'math');
+  renderSidebarHistory();
+  try{
+    const s=await fbGet(currentUser);
+    if(s){
+      const scores=s.scores||{};
+      if(!scores[op])scores[op]=[];
+      scores[op].unshift(entry);if(scores[op].length>20)scores[op].length=20;
+      await fbSet(currentUser,{...s,scores});setSyncStatus('synced');
+    }
+  }catch(e){setSyncStatus('offline');}
+}
+
+async function loadMathScores(){
+  if(!currentUser)return;
+  try{
+    const s=await fbGet(currentUser);
+    if(s&&s.scores){Object.entries(s.scores).forEach(([op,list])=>{setLocalScores(op,list,'math');});setSyncStatus('synced');renderSidebarHistory();}
+  }catch(e){setSyncStatus('offline');}
+}
+
+function setSyncStatus(st){
+  const el=document.getElementById('syncIndicator');
+  if(st==='synced'){el.textContent='☁️';el.className='sync-indicator synced';}
+  else if(st==='syncing'){el.textContent='⟳';el.className='sync-indicator syncing';}
+  else{el.textContent='⚠';el.className='sync-indicator offline';}
+}
+
+function fmtDate(d){return`${d.getDate()}/${d.getMonth()+1} ${pad(d.getHours())}:${pad(d.getMinutes())}`;}
+function pad(n){return String(n).padStart(2,'0');}
+
+// Sidebar history
+function renderSidebarHistory(){
+  const hist=document.getElementById('sb-history');
+  const data=getLocalScores(mode,'math');
+  let html=`<div class="sh-title">${MODE_META[mode]?.emoji||''} Riwayat</div>`;
+  if(!data.length){html+='<div class="sh-empty">Belum ada</div>';}
+  else{data.slice(0,8).forEach(e=>{html+=`<div class="sh-entry"><div class="sh-pts">${e.score}<span style="font-size:0.6rem;color:var(--muted)">/100</span></div><div class="sh-detail">${e.diff||''} · ${e.date}</div></div>`;});}
+  hist.innerHTML=html;
+}
+
+// Mode buttons
+function updateModeButtons(){
+  const cfg=GRADE_CFG[grade]?.[diff]||{};
+  ['add','sub','mul','div','mix'].forEach(m=>{
+    const btn=document.getElementById('mib-'+m);if(!btn)return;
+    const locked=(m==='mul'||m==='div')&&!cfg.allowMul || m==='mix'&&!cfg.allowMix;
+    btn.disabled=locked; btn.className='mode-icon-btn';
+    if(m===mode&&!locked)btn.classList.add('active-'+m);
+  });
+  if(((mode==='mul'||mode==='div')&&!GRADE_CFG[grade]?.[diff]?.allowMul)||(mode==='mix'&&!GRADE_CFG[grade]?.[diff]?.allowMix)){
+    mode='add';document.getElementById('mib-add').className='mode-icon-btn active-add';
+  }
+  const m=MODE_META[mode];
+  const el=document.getElementById('modeIndicator');
+  el.textContent=m.emoji+' '+m.label; el.className='mode-indicator '+m.indicatorCls;
+}
+function setMode(m){
+  const cfg=GRADE_CFG[grade]?.[diff]||{};
+  if((m==='mul'||m==='div')&&!cfg.allowMul)return;
+  if(m==='mix'&&!cfg.allowMix)return;
+  mode=m;updateModeButtons();renderSidebarHistory();
+  showMathReady();
+}
+function setDiff(d){
+  diff=d;
+  ['easy','medium','hard','explore'].forEach(x=>{
+    const btn=document.getElementById('dib-'+x);if(!btn)return;
+    btn.className='diff-btn'+(d===x?' active-'+x:'');
+  });
+  updateModeButtons();showMathReady();
+}
+
+// Panels
+function showMathPanel(panel){
+  document.getElementById('readyScreen').classList.add('hidden');
+  document.getElementById('questionCard').classList.add('hidden');
+  document.getElementById('mathNumpad').classList.add('hidden');
+  document.getElementById('mathActionRow').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('chartPanel').classList.add('hidden');
+  document.getElementById('boardPanel').classList.add('hidden');
+  if(panel==='chart'){document.getElementById('chartPanel').classList.remove('hidden');renderMathChart();}
+  else{document.getElementById('boardPanel').classList.remove('hidden');renderLeaderboard('math');}
+  // Update sidebar active
+  document.getElementById('mib-chart').className='mode-icon-btn'+(panel==='chart'?' active-chart':'');
+  document.getElementById('mib-board').className='mode-icon-btn'+(panel==='board'?' active-board':'');
+}
+
+function showMathReady(){
+  clearInterval(mathTimer);gameActive=false;
+  document.getElementById('chartPanel').classList.add('hidden');
+  document.getElementById('boardPanel').classList.add('hidden');
+  document.getElementById('readyScreen').classList.remove('hidden');
+  document.getElementById('questionCard').classList.add('hidden');
+  document.getElementById('mathNumpad').classList.add('hidden');
+  document.getElementById('mathActionRow').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('exploreMathBar').classList.add('hidden');
+  document.getElementById('timerDisplay').style.color='var(--blue)';
+  document.getElementById('timerDisplay').textContent='120';
+  document.getElementById('scoreDisplay').textContent='—';
+  document.getElementById('streakDisplay').textContent='0';
+  const m=MODE_META[mode];
+  document.getElementById('readyEmoji').textContent=m.emoji;
+  document.getElementById('readyTitle').textContent=m.label;
+  const diffLabel={easy:'🟢 Mudah',medium:'🟡 Sedang',hard:'🔴 Sulit',explore:'🔭 Explore'};
+  document.getElementById('readyInfo').textContent=`Kelas ${grade} · ${diffLabel[diff]}`;
+  // Update ready rules for explore
+  const rulesEl=document.querySelector('#readyScreen .ready-rules');
+  if(diff==='explore'){
+    rulesEl.innerHTML=`<div class="rr-item">⏱ 120 detik</div>
+      <div class="rr-item">🔭 Dimulai dari level mudah</div>
+      <div class="rr-item">⬆️ 3 benar berturut = naik level</div>
+      <div class="rr-item">⬇️ 2 salah berturut = turun level</div>`;
+  } else {
+    rulesEl.innerHTML=`<div class="rr-item">⏱ 120 detik</div>
+      <div class="rr-item">🎯 30 soal untuk dijawab</div>
+      <div class="rr-item">⭐ 30/30 benar = skor 100</div>`;
+  }
+  ['add','sub','mul','div','mix'].forEach(mm=>{
+    const btn=document.getElementById('mib-'+mm);if(!btn)return;
+    btn.className='mode-icon-btn'+(mm===mode?' active-'+mm:'');
+    if(btn.disabled)btn.className='mode-icon-btn';
+  });
+  document.getElementById('mib-chart').className='mode-icon-btn';
+  document.getElementById('mib-board').className='mode-icon-btn';
+}
+
+// Game
+function computeMathScore(){
+  if(mathAnswered===0||mathCorrect===0)return 1;
+  return Math.max(1,Math.min(100,Math.round(mathCorrect/MAX_Q*100)));
+}
+function startGame(){
+  clearInterval(mathTimer);mathStreak=mathBestStreak=mathAnswered=mathCorrect=mathWrong=0;
+  mathTimeLeft=120;gameActive=true;
+  usedMathQuestions.clear();
+  mathQuestionQueue=[]; // will be built fresh on first generateQuestion call
+  // Init explore state
+  if(diff==='explore'){
+    exploreLevel=1;exploreConsecCorrect=0;exploreConsecWrong=0;
+    document.getElementById('exploreMathBar').classList.remove('hidden');
+    updateExploreMathBar();
+  } else {
+    document.getElementById('exploreMathBar').classList.add('hidden');
+  }
+  document.getElementById('timerDisplay').style.color='var(--blue)';
+  document.getElementById('timerDisplay').textContent='120';
+  document.getElementById('scoreDisplay').textContent='—';
+  document.getElementById('streakDisplay').textContent='0';
+  document.getElementById('readyScreen').classList.add('hidden');
+  document.getElementById('questionCard').classList.remove('hidden');
+  document.getElementById('mathNumpad').classList.remove('hidden');
+  document.getElementById('mathActionRow').classList.remove('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  generateQuestion();
+  mathTimer=setInterval(mathTick,1000);
+}
+function mathTick(){
+  mathTimeLeft--;
+  document.getElementById('timerDisplay').textContent=mathTimeLeft;
+  if(mathTimeLeft<=15)document.getElementById('timerDisplay').style.color='var(--accent2)';
+  if(mathTimeLeft<=0)endMathGame();
+}
+function endMathGame(){
+  clearInterval(mathTimer);gameActive=false;
+  const fs=computeMathScore();
+  saveMathScore(mode,fs,grade,mathCorrect,mathWrong,mathTimeLeft,diff);
+  document.getElementById('questionCard').classList.add('hidden');
+  document.getElementById('mathNumpad').classList.add('hidden');
+  document.getElementById('mathActionRow').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+  document.getElementById('resultEmoji').textContent=fs>=90?'🏆':fs>=70?'🌟':fs>=50?'🎉':'💪';
+  document.getElementById('resultTitle').textContent=fs>=90?'Luar Biasa!':fs>=70?'Bagus Sekali!':fs>=50?'Lumayan!':'Terus Berlatih!';
+  document.getElementById('resultSub').textContent=`Kelas ${grade} · ${MODE_META[mode].label} · ${diff}`;
+  document.getElementById('resultScore').innerHTML=`${fs}<span style="font-size:1.6rem;color:var(--muted)">/100</span>`;
+  document.getElementById('rdCorrect').textContent=mathCorrect;
+  document.getElementById('rdWrong').textContent=mathWrong;
+  document.getElementById('rdTime').textContent=(120-mathTimeLeft)+'s';
+  document.getElementById('rdStreak').textContent=mathBestStreak;
+}
+function resetGame(){showMathReady();}
+
+// Question generation
+function rnd(max){return max<1?1:Math.floor(Math.random()*max)+1;}
+function rndRange(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+
+// No-repeat tracker — stores string keys of questions shown this session
+const usedMathQuestions=new Set();
+
+// ── EXPLORE ADAPTIVE ENGINE (Math) ───────────────────────
+// 9 explore levels: 1=easiest, 9=hardest
+// Each level maps to a cfg-like object
+// 3 consecutive correct → level up; 2 consecutive wrong → level down
+let exploreLevel=1;        // current explore level 1-9
+let exploreConsecCorrect=0;
+let exploreConsecWrong=0;
+
+const EXPLORE_LEVELS=[
+  // L1 - very easy
+  {addMax:10, subMax:10, mulMax:null, divMax:null, allowMul:false, mulFactor:5, highGrade:false, label:'L1 · Dasar'},
+  // L2
+  {addMax:20, subMax:20, mulMax:null, divMax:null, allowMul:false, mulFactor:5, highGrade:false, label:'L2 · Mudah'},
+  // L3
+  {addMax:50, subMax:50, mulMax:null, divMax:null, allowMul:false, mulFactor:5, highGrade:false, label:'L3 · Mudah+'},
+  // L4 - mul/div unlocks
+  {addMax:50, subMax:50, mulMax:50,  divMax:50,  allowMul:true,  mulFactor:5, highGrade:false, label:'L4 · Sedang'},
+  // L5
+  {addMax:100,subMax:100,mulMax:100, divMax:100, allowMul:true,  mulFactor:7, highGrade:false, label:'L5 · Sedang+'},
+  // L6
+  {addMax:100,subMax:100,mulMax:100, divMax:100, allowMul:true,  mulFactor:8, highGrade:true,  label:'L6 · Sedang++'},
+  // L7
+  {addMax:100,subMax:100,mulMax:100, divMax:100, allowMul:true,  mulFactor:10,highGrade:true,  allowMix:true, label:'L7 · Sulit'},
+  // L8
+  {addMax:100,subMax:100,mulMax:100, divMax:100, allowMul:true,  mulFactor:10,highGrade:true,  allowMix:true, label:'L8 · Sulit+'},
+  // L9 - combined expressions
+  {addMax:100,subMax:100,mulMax:100, divMax:100, allowMul:true,  mulFactor:10,highGrade:true,  allowMix:true, combined:true, label:'L9 · Ahli'},
+];
+
+function getExploreCfg(){return EXPLORE_LEVELS[exploreLevel-1];}
+
+function updateExploreMathBar(){
+  if(diff!=='explore')return;
+  const fill=document.getElementById('exploreMathFill');
+  const lvl=document.getElementById('exploreMathLvl');
+  const pct=((exploreLevel-1)/8)*100;
+  const colors=['#4ecb71','#4ecb71','#4fa3e0','#4fa3e0','#f7c948','#f7c948','#ff9a3c','#ff6b6b','#ff6b6b'];
+  fill.style.width=pct+'%';
+  fill.style.background=colors[exploreLevel-1];
+  lvl.textContent=`${EXPLORE_LEVELS[exploreLevel-1].label}`;
+  // Show popup when level changes
+}
+
+function onExploreMathCorrect(){
+  exploreConsecCorrect++;exploreConsecWrong=0;
+  if(exploreConsecCorrect>=3&&exploreLevel<9){
+    exploreLevel++;exploreConsecCorrect=0;
+    showPopup('⬆️ Level naik!',true);
+    updateExploreMathBar();
+  }
+}
+function onExploreMathWrong(){
+  exploreConsecWrong++;exploreConsecCorrect=0;
+  if(exploreConsecWrong>=2&&exploreLevel>1){
+    exploreLevel--;exploreConsecWrong=0;
+    showPopup('⬇️ Level turun',false);
+    updateExploreMathBar();
+  }
+}
+
+// ── EXPLORE ADAPTIVE ENGINE (Lang) ───────────────────────
+// 6 lang explore levels: easy choices → medium type → harder vocab
+// 3 correct = level up, 2 wrong = level down
+let langExploreLevel=1;
+let langExploreConsecCorrect=0;
+let langExploreConsecWrong=0;
+
+// Lang explore: odd levels = choice (easy), even levels = type (medium)
+// Vocab pool rotates through grade levels as difficulty increases
+function getLangExploreDiff(){return langExploreLevel<=3?'easy':'medium';}
+function getLangExploreGrade(){
+  // levels 1-2: gr3 vocab, 3-4: gr4 vocab, 5-6: gr5/6 vocab
+  if(langExploreLevel<=2)return Math.max(3,langGrade);
+  if(langExploreLevel<=4)return Math.min(6,Math.max(4,langGrade));
+  return Math.min(6,Math.max(5,langGrade));
+}
+function updateExploreLangBar(){
+  if(langDiff!=='explore')return;
+  const fill=document.getElementById('exploreLangFill');
+  const lvl=document.getElementById('exploreLangLvl');
+  const pct=((langExploreLevel-1)/5)*100;
+  const colors=['#4ecb71','#4ecb71','#4fa3e0','#f7c948','#ff9a3c','#ff6b6b'];
+  fill.style.width=pct+'%';fill.style.background=colors[langExploreLevel-1];
+  const labels=['L1·Pilihan Dasar','L2·Pilihan','L3·Pilihan+','L4·Ketik','L5·Ketik+','L6·Ketik Ahli'];
+  lvl.textContent=labels[langExploreLevel-1];
+}
+function onExploreLangCorrect(){
+  langExploreConsecCorrect++;langExploreConsecWrong=0;
+  if(langExploreConsecCorrect>=3&&langExploreLevel<6){
+    langExploreLevel++;langExploreConsecCorrect=0;
+    showPopup('⬆️ Level naik!',true);
+    updateExploreLangBar();
+    // Switch between choice/type UI if needed
+    applyLangExploreUI();
+  }
+}
+function onExploreLangWrong(){
+  langExploreConsecWrong++;langExploreConsecCorrect=0;
+  if(langExploreConsecWrong>=2&&langExploreLevel>1){
+    langExploreLevel--;langExploreConsecWrong=0;
+    showPopup('⬇️ Level turun',false);
+    updateExploreLangBar();
+    applyLangExploreUI();
+  }
+}
+function applyLangExploreUI(){
+  const isChoice=getLangExploreDiff()==='easy';
+  document.getElementById('choicesDiv').classList.toggle('hidden',!isChoice);
+  document.getElementById('langAnswerRow').classList.toggle('hidden',isChoice);
+  document.getElementById('langKeyboard').classList.toggle('hidden',isChoice);
+}
+
+function genAddSub(op,maxAns){
+  let a,b,ans,tries=0;
+  do{
+    if(op==='+'){a=rnd(maxAns-1);b=rnd(maxAns-a);ans=a+b;}
+    else{a=rnd(maxAns);b=rnd(a-1)||1;ans=a-b;}
+    tries++;
+  }while((ans>maxAns||ans<1)&&tries<50);
+  return{a,b,ans};
+}
+function genFactor(cfg){
+  const mf=cfg.mulFactor||10;
+  return(cfg.highGrade&&Math.random()<0.9)?rndRange(4,mf):rnd(mf);
+}
+function genMulDiv(op,cfg){
+  let a,b,ans;
+  if(op==='×'){a=genFactor(cfg);b=genFactor(cfg);ans=a*b;}
+  else{const q=genFactor(cfg);const d=genFactor(cfg)||1;a=q*d;b=d;ans=q;}
+  return{a,b,ans};
+}
+function genCombined(cfg){
+  const forms=['mul_add','mul_sub','add_mul','sub_mul','bracket_add_mul','bracket_sub_mul'];
+  const form=forms[Math.floor(Math.random()*forms.length)];
+  const mf=cfg.mulFactor||9;
+  let expr,ans,a,b,c;
+  switch(form){
+    case 'mul_add':a=rndRange(2,mf);b=rndRange(2,mf);c=rndRange(1,15);ans=a*b+c;expr=`${a} × ${b} + ${c}`;break;
+    case 'mul_sub':a=rndRange(2,mf);b=rndRange(2,mf);c=rndRange(1,Math.max(1,a*b-1));ans=a*b-c;expr=`${a} × ${b} − ${c}`;break;
+    case 'add_mul':b=rndRange(2,mf);c=rndRange(2,mf);a=rndRange(1,15);ans=a+b*c;expr=`${a} + ${b} × ${c}`;break;
+    case 'sub_mul':b=rndRange(2,Math.min(5,mf));c=rndRange(2,Math.min(5,mf));a=rndRange(b*c+1,b*c+15);ans=a-b*c;expr=`${a} − ${b} × ${c}`;break;
+    case 'bracket_add_mul':a=rndRange(1,9);b=rndRange(1,9);c=rndRange(2,mf);ans=(a+b)*c;expr=`(${a} + ${b}) × ${c}`;break;
+    case 'bracket_sub_mul':b=rndRange(1,7);a=rndRange(b+1,b+8);c=rndRange(2,mf);ans=(a-b)*c;expr=`(${a} − ${b}) × ${c}`;break;
+  }
+  return{expr,ans};
+}
+
+// ── MATH QUESTION QUEUE — pre-generated, shuffled, guaranteed no repeats ──
+const usedMathQuestions=new Set(); // kept for combined expr fallback
+let mathQuestionQueue=[]; // pre-shuffled list of {op,a,b} or {expr,ans}
+
+function buildMathQueue(){
+  const cfg=diff==='explore'?getExploreCfg():(GRADE_CFG[grade]?.[diff]||{});
+  const isHighGrade=(grade>=4)||(diff==='explore'&&exploreLevel>=5);
+  const useCombined=(mode==='mix'&&isHighGrade&&diff!=='easy')||(diff==='explore'&&cfg.combined);
+  const pool=[];
+
+  if(useCombined){
+    // Generate large set of unique combined expressions
+    const seen=new Set();
+    const forms=['mul_add','mul_sub','add_mul','sub_mul','bracket_add_mul','bracket_sub_mul'];
+    const mf=cfg.mulFactor||9;
+    for(let attempt=0;attempt<500;attempt++){
+      const form=forms[Math.floor(Math.random()*forms.length)];
+      let expr,ans,a,b,c;
+      switch(form){
+        case 'mul_add':a=rndRange(2,mf);b=rndRange(2,mf);c=rndRange(1,15);ans=a*b+c;expr=`${a} × ${b} + ${c}`;break;
+        case 'mul_sub':a=rndRange(2,mf);b=rndRange(2,mf);c=rndRange(1,Math.max(1,a*b-1));ans=a*b-c;expr=`${a} × ${b} − ${c}`;break;
+        case 'add_mul':b=rndRange(2,mf);c=rndRange(2,mf);a=rndRange(1,15);ans=a+b*c;expr=`${a} + ${b} × ${c}`;break;
+        case 'sub_mul':b=rndRange(2,Math.min(5,mf));c=rndRange(2,Math.min(5,mf));a=rndRange(b*c+1,b*c+15);ans=a-b*c;expr=`${a} − ${b} × ${c}`;break;
+        case 'bracket_add_mul':a=rndRange(1,9);b=rndRange(1,9);c=rndRange(2,mf);ans=(a+b)*c;expr=`(${a} + ${b}) × ${c}`;break;
+        case 'bracket_sub_mul':b=rndRange(1,7);a=rndRange(b+1,b+8);c=rndRange(2,mf);ans=(a-b)*c;expr=`(${a} − ${b}) × ${c}`;break;
+      }
+      if(!seen.has(expr)){seen.add(expr);pool.push({combined:true,expr,ans});}
+      if(pool.length>=200)break;
+    }
+  } else {
+    // Generate ALL possible unique questions for this op/range
+    let ops;
+    if(mode==='add')ops=['+'];
+    else if(mode==='sub')ops=['-'];
+    else if(mode==='mul')ops=['×'];
+    else if(mode==='div')ops=['÷'];
+    else ops=cfg.allowMul?['+','-','×','÷']:['+','-'];
+
+    const maxAns=cfg.addMax||20;
+    const mf=cfg.mulFactor||10;
+
+    ops.forEach(op=>{
+      if(op==='+'){
+        for(let a=1;a<maxAns;a++)for(let b=1;a+b<=maxAns;b++)pool.push({op,a,b,ans:a+b});
+      } else if(op==='-'){
+        for(let a=2;a<=maxAns;a++)for(let b=1;b<a;b++)pool.push({op,a,b,ans:a-b});
+      } else if(op==='×'){
+        for(let a=1;a<=mf;a++)for(let b=1;b<=mf;b++)pool.push({op,a,b,ans:a*b});
+      } else if(op==='÷'){
+        for(let d=1;d<=mf;d++)for(let q=1;q<=mf;q++)pool.push({op,a:d*q,b:d,ans:q});
+      }
+    });
+  }
+
+  // Fisher-Yates shuffle
+  for(let i=pool.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [pool[i],pool[j]]=[pool[j],pool[i]];
+  }
+  return pool;
+}
+
+let currentExprMode=false;
+function generateQuestion(){
+  // Rebuild queue if empty
+  if(mathQuestionQueue.length===0) mathQuestionQueue=buildMathQueue();
+  const q=mathQuestionQueue.shift();
+
+  if(q.combined){
+    currentAnswer=q.ans; currentExprMode=true;
+    document.getElementById('questionText').innerHTML=`<span style="font-size:1.5rem;line-height:1.3;">${q.expr}</span><span class="eq"> =</span>`;
+    document.getElementById('opBadge').textContent='Ekspresi Campuran';
+    document.getElementById('opBadge').className='op-badge op-mul';
+  } else {
+    currentExprMode=false;
+    document.getElementById('questionText').innerHTML=`<span id="num1">?</span><span class="op-symbol" id="opSymbol">+</span><span id="num2">?</span><span class="eq">=</span>`;
+    currentAnswer=q.ans;
+    document.getElementById('num1').textContent=q.a;
+    document.getElementById('opSymbol').textContent=q.op;
+    document.getElementById('num2').textContent=q.b;
+    const names={'+':'Penjumlahan','-':'Pengurangan','×':'Perkalian','÷':'Pembagian'};
+    const cls={'+':'op-add','-':'op-sub','×':'op-mul','÷':'op-div'};
+    document.getElementById('opBadge').textContent=names[q.op];
+    document.getElementById('opBadge').className='op-badge '+cls[q.op];
+  }
+  const inp=document.getElementById('answerInput');
+  inp.dataset.val='';inp.textContent='?';inp.className='answer-input empty';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+}
+function submitAnswer(){
+  if(!gameActive)return;
+  const inp=document.getElementById('answerInput');const val=inp.dataset.val||'';
+  if(val===''||val==='-')return;
+  const userAns=parseInt(val,10);mathAnswered++;
+  if(userAns===currentAnswer){
+    mathCorrect++;mathStreak++;if(mathStreak>mathBestStreak)mathBestStreak=mathStreak;
+    if(diff==='explore')onExploreMathCorrect();
+    inp.className='answer-input correct';
+    const sm=mathStreak>=5?' 🔥 On Fire!':mathStreak>=3?` 🔥 ${mathStreak} streak!`:'';
+    showFeedback('✓ Benar!'+sm,true);showPopup(mathStreak>=5?'🔥 On Fire!':'✓ Benar!',true);
+    updateMathStats();updateMathProgress();
+    if(diff!=='explore'&&mathCorrect>=MAX_Q){setTimeout(endMathGame,600);return;}
+    setTimeout(generateQuestion,600);
+  }else{
+    mathWrong++;mathStreak=0;inp.className='answer-input wrong';
+    if(diff==='explore')onExploreMathWrong();
+    showFeedback(`✗ Jawaban: ${currentAnswer}`,false);showPopup(`✗ ${currentAnswer}`,false);
+    updateMathStats();updateMathProgress();setTimeout(generateQuestion,1000);
+  }
+}
+function updateMathStats(){
+  document.getElementById('scoreDisplay').textContent=mathAnswered>0?computeMathScore():'—';
+  document.getElementById('streakDisplay').textContent=mathStreak;
+}
+function updateMathProgress(){
+  document.getElementById('progressBar').style.width=Math.min(mathCorrect/MAX_Q*100,100)+'%';
+  document.getElementById('progressLabel').textContent=`${mathCorrect}/${MAX_Q} benar`;
+}
+function npPress(d){const inp=document.getElementById('answerInput');let val=inp.dataset.val||'';if(val.replace('-','').length>=5)return;val+=d;inp.dataset.val=val;inp.textContent=val;inp.classList.remove('empty');}
+function npDel(){const inp=document.getElementById('answerInput');let val=(inp.dataset.val||'').slice(0,-1);inp.dataset.val=val;if(val===''){inp.textContent='?';inp.classList.add('empty');}else inp.textContent=val;}
+function npNeg(){const inp=document.getElementById('answerInput');let val=inp.dataset.val||'';if(!val)return;val=val.startsWith('-')?val.slice(1):'-'+val;inp.dataset.val=val;inp.textContent=val;}
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('screen-game').classList.contains('active')&&gameActive){
+    if(e.key>='0'&&e.key<='9')npPress(e.key);
+    else if(e.key==='Backspace')npDel();
+    else if(e.key==='-')npNeg();
+    else if(e.key==='Enter')submitAnswer();
+  }
+});
+
+// ── CHART ────────────────────────────────────────────────
+function renderMathChart(){
+  const ops=['add','sub','mul','div','mix'];
+  const opLabels={add:'Penjumlahan',sub:'Pengurangan',mul:'Perkalian',div:'Pembagian',mix:'Campuran'};
+  const colors={add:'#4ecb71',sub:'#ff6b6b',mul:'#4fa3e0',div:'#a78bfa',mix:'#f7c948'};
+  // Build tabs
+  const tabsEl=document.getElementById('cpTabs');
+  tabsEl.innerHTML=ops.map((op,i)=>`<button class="cp-tab${i===0?' active':''}" onclick="renderMathChartOp('${op}',this)">${opLabels[op]}</button>`).join('');
+  renderMathChartOp('add',tabsEl.firstChild);
+}
+function renderMathChartOp(op,tabBtn){
+  document.querySelectorAll('#cpTabs .cp-tab').forEach(t=>t.classList.remove('active'));
+  tabBtn.classList.add('active');
+  const data=getLocalScores(op,'math');
+  const wrap=document.querySelector('#chartPanel .chart-wrap');
+  if(!data.length){wrap.innerHTML='<div class="cp-empty">Belum ada data untuk mode ini.</div>';return;}
+  wrap.innerHTML='<canvas id="scoreChart"></canvas>';
+  const labels=data.slice(0,10).reverse().map((e,i)=>`Sesi ${i+1}`);
+  const scores=data.slice(0,10).reverse().map(e=>e.score);
+  const colors={add:'#4ecb71',sub:'#ff6b6b',mul:'#4fa3e0',div:'#a78bfa',mix:'#f7c948'};
+  if(mathChartInst)mathChartInst.destroy();
+  mathChartInst=new Chart(document.getElementById('scoreChart'),{
+    type:'line',
+    data:{labels,datasets:[{label:'Skor',data:scores,borderColor:colors[op]||'#4fa3e0',backgroundColor:colors[op]+'33',tension:0.4,fill:true,pointBackgroundColor:colors[op],pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:'#7a92b0',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'}},x:{ticks:{color:'#7a92b0',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'}}}}
+  });
+}
+
+// ── LEADERBOARD ───────────────────────────────────────────
+async function renderLeaderboard(subj){
+  const el=document.getElementById(subj==='lang'?'langBoardList':'boardList');
+  const tabsEl=document.getElementById(subj==='lang'?'lbpTabs':'bpTabs');
+  el.innerHTML='<div class="bp-empty">Memuat...</div>';
+  const students=await fbGetAll();
+  const ops=subj==='lang'?['id2en','en2id']:['add','sub','mul','div','mix'];
+  const opL=subj==='lang'?{id2en:'🇮🇩→EN',en2id:'🇬🇧→ID'}:{add:'➕ Penjumlahan',sub:'➖ Pengurangan',mul:'✖️ Perkalian',div:'➗ Pembagian',mix:'🎲 Campuran'};
+  tabsEl.innerHTML=ops.map((op,i)=>`<button class="bp-tab${i===0?' active':''}" onclick="renderBoardOp('${op}',this,'${subj}')">${opL[op]}</button>`).join('');
+  renderBoardOp(ops[0],tabsEl.firstChild,subj,students);
+  window._boardStudents=students;
+}
+function renderBoardOp(op,tabBtn,subj,students){
+  document.querySelectorAll((subj==='lang'?'#lbpTabs':'#bpTabs')+' .bp-tab').forEach(t=>t.classList.remove('active'));
+  tabBtn.classList.add('active');
+  const st=students||window._boardStudents||{};
+  const scores=[];
+  Object.entries(st).forEach(([key,s])=>{
+    const list=subj==='lang'?(s.langScores&&s.langScores[op]||[]):(s.scores&&s.scores[op]||[]);
+    if(list.length){const best=Math.max(...list.map(e=>e.score));scores.push({name:s.name,best,key});}
+  });
+  scores.sort((a,b)=>b.best-a.best);
+  const el=document.getElementById(subj==='lang'?'langBoardList':'boardList');
+  if(!scores.length){el.innerHTML='<div class="bp-empty">Belum ada skor untuk mode ini.</div>';return;}
+  const rankEmoji=['🥇','🥈','🥉'];
+  el.innerHTML=scores.slice(0,20).map((s,i)=>{
+    const rankCls=i===0?'gold':i===1?'silver':i===2?'bronze':'other';
+    const rank=i<3?rankEmoji[i]:`${i+1}`;
+    const isMe=s.key===currentUser;
+    return`<div class="board-row">
+      <div class="br-rank ${rankCls}">${rank}</div>
+      <div class="br-name${isMe?' me':''}">${s.name}${isMe?' (kamu)':''}</div>
+      <div class="br-score">${s.best}<span style="font-size:0.65rem;color:var(--muted)">/100</span></div>
+    </div>`;
+  }).join('');
+}
+
+function showFeedback(msg,ok){const el=document.getElementById('feedback');el.textContent=msg;el.className='feedback '+(ok?'correct':'wrong');}
+function showPopup(msg,ok){const p=document.createElement('div');p.className='popup '+(ok?'correct':'wrong');p.textContent=msg;document.body.appendChild(p);setTimeout(()=>p.remove(),1400);}
+
+// ════════════════════════════════════════════════════════
+// BAHASA GAME
+// ════════════════════════════════════════════════════════
+let langMode='id2en', langDiff='easy', langGrade=3;
+let langStreak=0,langBestStreak=0,langAnswered=0,langCorrect=0,langWrong=0;
+let langTimeLeft=120,langTimer=null,langGameActive=false;
+let currentLangAnswer='',currentChoices=[];
+let langChartInst=null;
+
+function enterLang(){
+  fbGet(currentUser).then(s=>{
+    if(!s)return;
+    langGrade=Math.max(3,Math.min(6,s.grade)); // Bahasa only gr3-6
+    document.getElementById('lUserName').textContent='👤 '+s.name;
+    document.getElementById('lUserGrade').textContent='Kelas '+langGrade;
+    showScreen('screen-lang');
+    loadLangScores();
+    showLangReady();
+  });
+}
+
+function setLangMode(m){
+  langMode=m;
+  ['id2en','en2id'].forEach(x=>{
+    const btn=document.getElementById('lmb-'+x);if(!btn)return;
+    btn.className='lang-mode-btn'+(x===m?' active-'+x:'');
+  });
+  document.getElementById('langModeIndicator').textContent=m==='id2en'?'🇮🇩 Indonesia → English':'🇬🇧 English → Indonesia';
+  document.getElementById('langModeIndicator').className='mode-indicator '+(m==='id2en'?'badge-id2en':'badge-en2id');
+  renderLangSidebarHistory();
+  showLangReady();
+}
+function setLangDiff(d){
+  langDiff=d;
+  ['easy','medium','explore'].forEach(x=>{
+    const btn=document.getElementById('ldib-'+x);if(!btn)return;
+    btn.className='lang-diff-btn'+(d===x?' active-'+x:'');
+  });
+  showLangReady();
+}
+function showLangPanel(panel){
+  document.getElementById('langReadyScreen').classList.add('hidden');
+  document.getElementById('langQuestionCard').classList.add('hidden');
+  document.getElementById('langKeyboard').classList.add('hidden');
+  document.getElementById('langActionRow').classList.add('hidden');
+  document.getElementById('langResultScreen').classList.add('hidden');
+  document.getElementById('langChartPanel').classList.add('hidden');
+  document.getElementById('langBoardPanel').classList.add('hidden');
+  if(panel==='chart'){document.getElementById('langChartPanel').classList.remove('hidden');renderLangChart();}
+  else{document.getElementById('langBoardPanel').classList.remove('hidden');renderLeaderboard('lang');}
+  document.getElementById('lmb-lchart').className='lang-mode-btn'+(panel==='chart'?' active-lchart':'');
+  document.getElementById('lmb-lboard').className='lang-mode-btn'+(panel==='board'?' active-lboard':'');
+}
+function showLangReady(){
+  clearInterval(langTimer);langGameActive=false;
+  document.getElementById('langChartPanel').classList.add('hidden');
+  document.getElementById('langBoardPanel').classList.add('hidden');
+  document.getElementById('langReadyScreen').classList.remove('hidden');
+  document.getElementById('langQuestionCard').classList.add('hidden');
+  document.getElementById('langKeyboard').classList.add('hidden');
+  document.getElementById('langActionRow').classList.add('hidden');
+  document.getElementById('langResultScreen').classList.add('hidden');
+  document.getElementById('lTimerDisplay').style.color='var(--blue)';
+  document.getElementById('lTimerDisplay').textContent='120';
+  document.getElementById('lScoreDisplay').textContent='—';
+  document.getElementById('lStreakDisplay').textContent='0';
+  document.getElementById('langReadyEmoji').textContent=langMode==='id2en'?'🇮🇩':'🇬🇧';
+  document.getElementById('langReadyTitle').textContent=langMode==='id2en'?'Indonesia → English':'English → Indonesia';
+  const diffLabel={easy:'🟢 Mudah (Pilihan)',medium:'🟡 Sedang (Ketik)',explore:'🔭 Explore (Adaptive)'};
+  document.getElementById('langReadyInfo').textContent=`Kelas ${langGrade} · ${diffLabel[langDiff]}`;
+  const lRulesEl=document.querySelector('#langReadyScreen .ready-rules');
+  if(langDiff==='explore'){
+    lRulesEl.innerHTML=`<div class="rr-item">⏱ 120 detik</div>
+      <div class="rr-item">🔭 Dimulai dari pilihan ganda</div>
+      <div class="rr-item">⬆️ 3 benar berturut = naik level</div>
+      <div class="rr-item">⬇️ 2 salah berturut = turun level</div>`;
+  } else {
+    lRulesEl.innerHTML=`<div class="rr-item">⏱ 120 detik</div>
+      <div class="rr-item">🎯 30 soal terjemahan</div>
+      <div class="rr-item">⭐ 30/30 benar = skor 100</div>`;
+  }
+  // Reset sidebar active
+  ['id2en','en2id'].forEach(x=>{const btn=document.getElementById('lmb-'+x);if(btn)btn.className='lang-mode-btn'+(x===langMode?' active-'+x:'');});
+  document.getElementById('lmb-lchart').className='lang-mode-btn';
+  document.getElementById('lmb-lboard').className='lang-mode-btn';
+}
+
+async function saveLangScore(op,pts,gr,cor,wrng,tleft,difficulty){
+  if(!currentUser)return;
+  const lsi=document.getElementById('lSyncIndicator');
+  lsi.textContent='⟳';lsi.className='sync-indicator syncing';
+  const entry={date:fmtDate(new Date()),grade:gr,score:pts,correct:cor,wrong:wrng,timeLeft:tleft,diff:difficulty,ts:Date.now()};
+  const local=getLocalScores(op,'lang');local.unshift(entry);if(local.length>20)local.length=20;
+  setLocalScores(op,local,'lang');
+  renderLangSidebarHistory();
+  try{
+    const s=await fbGet(currentUser);
+    if(s){
+      const langScores=s.langScores||{};
+      if(!langScores[op])langScores[op]=[];
+      langScores[op].unshift(entry);if(langScores[op].length>20)langScores[op].length=20;
+      await fbSet(currentUser,{...s,langScores});
+      lsi.textContent='☁️';lsi.className='sync-indicator synced';
+    }
+  }catch(e){lsi.textContent='⚠';lsi.className='sync-indicator offline';}
+}
+async function loadLangScores(){
+  try{
+    const s=await fbGet(currentUser);
+    if(s&&s.langScores){Object.entries(s.langScores).forEach(([op,list])=>{setLocalScores(op,list,'lang');});renderLangSidebarHistory();}
+  }catch(e){}
+}
+function renderLangSidebarHistory(){
+  const hist=document.getElementById('lsb-history');
+  const data=getLocalScores(langMode,'lang');
+  let html=`<div class="sh-title">${langMode==='id2en'?'🇮🇩':'🇬🇧'} Riwayat</div>`;
+  if(!data.length){html+='<div class="sh-empty">Belum ada</div>';}
+  else{data.slice(0,8).forEach(e=>{html+=`<div class="sh-entry"><div class="sh-pts">${e.score}<span style="font-size:0.6rem;color:var(--muted)">/100</span></div><div class="sh-detail">${e.diff||''} · ${e.date}</div></div>`;});}
+  hist.innerHTML=html;
+}
+
+function computeLangScore(){
+  if(!langAnswered||!langCorrect)return 1;
+  return Math.max(1,Math.min(100,Math.round(langCorrect/MAX_Q*100)));
+}
+
+function startLangGame(){
+  clearInterval(langTimer);langStreak=langBestStreak=langAnswered=langCorrect=langWrong=0;
+  langTimeLeft=120;langGameActive=true;
+  usedWordIndices=[];
+  wordQueue=[]; // reset shuffled queue — guarantees no repeats
+  wordQueueGrade=-1; // force rebuild for correct grade
+  // Init explore
+  if(langDiff==='explore'){
+    langExploreLevel=1;langExploreConsecCorrect=0;langExploreConsecWrong=0;
+    document.getElementById('exploreLangBar').classList.remove('hidden');
+    updateExploreLangBar();
+  } else {
+    document.getElementById('exploreLangBar').classList.add('hidden');
+  }
+  document.getElementById('lTimerDisplay').style.color='var(--blue)';
+  document.getElementById('lTimerDisplay').textContent='120';
+  document.getElementById('lScoreDisplay').textContent='—';
+  document.getElementById('lStreakDisplay').textContent='0';
+  document.getElementById('langReadyScreen').classList.add('hidden');
+  document.getElementById('langQuestionCard').classList.remove('hidden');
+  document.getElementById('langActionRow').classList.remove('hidden');
+  document.getElementById('langResultScreen').classList.add('hidden');
+  // Set initial UI based on effective diff
+  const effectiveDiff=langDiff==='explore'?getLangExploreDiff():langDiff;
+  if(effectiveDiff==='easy'){
+    document.getElementById('choicesDiv').classList.remove('hidden');
+    document.getElementById('langAnswerRow').classList.add('hidden');
+    document.getElementById('langKeyboard').classList.add('hidden');
+  } else {
+    document.getElementById('choicesDiv').classList.add('hidden');
+    document.getElementById('langAnswerRow').classList.remove('hidden');
+    document.getElementById('langKeyboard').classList.remove('hidden');
+  }
+  generateLangQuestion();
+  langTimer=setInterval(langTick,1000);
+}
+function langTick(){
+  langTimeLeft--;
+  document.getElementById('lTimerDisplay').textContent=langTimeLeft;
+  if(langTimeLeft<=15)document.getElementById('lTimerDisplay').style.color='var(--accent2)';
+  if(langTimeLeft<=0)endLangGame();
+}
+function endLangGame(){
+  clearInterval(langTimer);langGameActive=false;
+  const fs=computeLangScore();
+  saveLangScore(langMode,fs,langGrade,langCorrect,langWrong,langTimeLeft,langDiff);
+  document.getElementById('langQuestionCard').classList.add('hidden');
+  document.getElementById('langKeyboard').classList.add('hidden');
+  document.getElementById('langActionRow').classList.add('hidden');
+  document.getElementById('exploreLangBar').classList.add('hidden');
+  document.getElementById('langResultScreen').classList.remove('hidden');
+  document.getElementById('lResultEmoji').textContent=fs>=90?'🏆':fs>=70?'🌟':fs>=50?'🎉':'💪';
+  document.getElementById('lResultTitle').textContent=fs>=90?'Luar Biasa!':fs>=70?'Bagus Sekali!':fs>=50?'Lumayan!':'Terus Berlatih!';
+  document.getElementById('lResultSub').textContent=`Kelas ${langGrade} · ${langMode==='id2en'?'ID→EN':'EN→ID'} · ${langDiff}`;
+  document.getElementById('lResultScore').innerHTML=`${fs}<span style="font-size:1.6rem;color:var(--muted)">/100</span>`;
+  document.getElementById('lRdCorrect').textContent=langCorrect;
+  document.getElementById('lRdWrong').textContent=langWrong;
+  document.getElementById('lRdTime').textContent=(120-langTimeLeft)+'s';
+  document.getElementById('lRdStreak').textContent=langBestStreak;
+}
+function resetLangGame(){showLangReady();}
+
+// Lang question generation — pre-shuffled queue per grade, guaranteed no repeats
+let usedWordIndices=[];
+let wordQueue=[];
+let wordQueueGrade=-1; // track which grade the queue was built for
+
+function buildWordQueue(pool){
+  const arr=[...Array(pool.length).keys()];
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function generateLangQuestion(){
+  const activeGrade=langDiff==='explore'?getLangExploreGrade():langGrade;
+  const vocabPool=VOCAB[activeGrade]||VOCAB[3];
+
+  // Rebuild queue if empty OR if grade changed (explore mode)
+  if(wordQueue.length===0||wordQueueGrade!==activeGrade){
+    wordQueue=buildWordQueue(vocabPool);
+    wordQueueGrade=activeGrade;
+    usedWordIndices=[];
+  }
+  const idx=wordQueue.shift();
+  usedWordIndices.push(idx);
+
+  const word=vocabPool[idx];
+  let questionWord,answerWord;
+  if(langMode==='id2en'){questionWord=word.id;answerWord=word.en;}
+  else{questionWord=word.en;answerWord=word.id;}
+  currentLangAnswer=answerWord.toLowerCase().trim();
+
+  document.getElementById('langWord').textContent=questionWord;
+  document.getElementById('langBadge').textContent=langMode==='id2en'?'🇮🇩 Indonesia → English':'🇬🇧 English → Indonesia';
+  document.getElementById('langBadge').className='lang-badge '+(langMode==='id2en'?'badge-id2en':'badge-en2id');
+  document.getElementById('lProgressBar').style.width=Math.min(langCorrect/MAX_Q*100,100)+'%';
+  document.getElementById('lProgressLabel').textContent=`${langCorrect}/${MAX_Q} benar`;
+  document.getElementById('langFeedback').textContent='';
+  document.getElementById('langFeedback').className='feedback';
+
+  // Determine if this question is choice or type
+  const effectiveDiff=langDiff==='explore'?getLangExploreDiff():langDiff;
+
+  if(effectiveDiff==='easy'){
+    document.getElementById('choicesDiv').classList.remove('hidden');
+    document.getElementById('langAnswerRow').classList.add('hidden');
+    document.getElementById('langKeyboard').classList.add('hidden');
+    // Generate 3 wrong + 1 correct
+    const choices=[answerWord];
+    const pool=vocabPool.filter((_,i)=>i!==idx);
+    while(choices.length<4){
+      const c=pool[Math.floor(Math.random()*pool.length)];
+      const cWord=langMode==='id2en'?c.en:c.id;
+      if(!choices.includes(cWord))choices.push(cWord);
+    }
+    for(let i=choices.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[choices[i],choices[j]]=[choices[j],choices[i]];}
+    currentChoices=choices;
+    const div=document.getElementById('choicesDiv');
+    div.innerHTML=choices.map(ch=>`<button class="choice-btn" onclick="checkLangChoice('${ch.replace(/'/g,"\\'")}',this)">${ch}</button>`).join('');
+  } else {
+    document.getElementById('choicesDiv').classList.add('hidden');
+    document.getElementById('langAnswerRow').classList.remove('hidden');
+    document.getElementById('langKeyboard').classList.remove('hidden');
+    const inp=document.getElementById('langTypeInput');
+    if(inp){inp.value='';setTimeout(()=>inp.focus(),100);}
+    const ainp=document.getElementById('langAnswerInput');
+    if(ainp){ainp.textContent='?';ainp.className='answer-input empty';}
+  }
+}
+
+function checkLangChoice(choice,btn){
+  if(!langGameActive)return;
+  langAnswered++;
+  const isCorrect=choice.toLowerCase().trim()===currentLangAnswer;
+  if(isCorrect){
+    langCorrect++;langStreak++;if(langStreak>langBestStreak)langBestStreak=langStreak;
+    if(langDiff==='explore')onExploreLangCorrect();
+    btn.className='choice-btn correct';
+    document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+    showLangFeedback('✓ Benar!',true);showPopup('✓ Benar!',true);
+    updateLangStats();
+    if(langDiff!=='explore'&&langCorrect>=MAX_Q){setTimeout(endLangGame,700);return;}
+    setTimeout(generateLangQuestion,700);
+  } else {
+    langWrong++;langStreak=0;
+    if(langDiff==='explore')onExploreLangWrong();
+    btn.className='choice-btn wrong';
+    document.querySelectorAll('.choice-btn').forEach(b=>{
+      if(b.textContent.toLowerCase().trim()===currentLangAnswer)b.className='choice-btn reveal';
+      b.disabled=true;
+    });
+    showLangFeedback(`✗ Jawaban: ${currentChoices.find(c=>c.toLowerCase()===currentLangAnswer)||currentLangAnswer}`,false);
+    showPopup(`✗ ${currentLangAnswer}`,false);
+    updateLangStats();
+    setTimeout(generateLangQuestion,1200);
+  }
+}
+
+function submitLangAnswer(){
+  if(!langGameActive)return;
+  const inp=document.getElementById('langTypeInput');
+  const val=(inp?inp.value:'').trim().toLowerCase();
+  if(!val)return;
+  langAnswered++;
+  if(val===currentLangAnswer||val===currentLangAnswer.replace(/-/g,' ')){
+    langCorrect++;langStreak++;if(langStreak>langBestStreak)langBestStreak=langStreak;
+    if(langDiff==='explore')onExploreLangCorrect();
+    showLangFeedback('✓ Benar!',true);showPopup('✓ Benar!',true);
+    if(inp)inp.value='';
+    updateLangStats();
+    if(langDiff!=='explore'&&langCorrect>=MAX_Q){setTimeout(endLangGame,600);return;}
+    setTimeout(generateLangQuestion,600);
+  } else {
+    langWrong++;langStreak=0;
+    if(langDiff==='explore')onExploreLangWrong();
+    showLangFeedback(`✗ Jawaban: ${currentLangAnswer}`,false);showPopup(`✗ ${currentLangAnswer}`,false);
+    if(inp)inp.value='';
+    updateLangStats();setTimeout(generateLangQuestion,1200);
+  }
+}
+
+function updateLangStats(){
+  document.getElementById('lScoreDisplay').textContent=langAnswered>0?computeLangScore():'—';
+  document.getElementById('lStreakDisplay').textContent=langStreak;
+}
+function showLangFeedback(msg,ok){const el=document.getElementById('langFeedback');el.textContent=msg;el.className='feedback '+(ok?'correct':'wrong');}
+
+// Lang chart
+function renderLangChart(){
+  const ops=['id2en','en2id'];
+  const opL={id2en:'🇮🇩→EN',en2id:'🇬🇧→ID'};
+  const tabsEl=document.getElementById('lcpTabs');
+  tabsEl.innerHTML=ops.map((op,i)=>`<button class="cp-tab${i===0?' active':''}" onclick="renderLangChartOp('${op}',this)">${opL[op]}</button>`).join('');
+  renderLangChartOp('id2en',tabsEl.firstChild);
+}
+function renderLangChartOp(op,tabBtn){
+  document.querySelectorAll('#lcpTabs .cp-tab').forEach(t=>t.classList.remove('active'));
+  tabBtn.classList.add('active');
+  const data=getLocalScores(op,'lang');
+  const wrap=document.querySelector('#langChartPanel .chart-wrap');
+  if(!data.length){wrap.innerHTML='<div class="cp-empty">Belum ada data untuk mode ini.</div>';return;}
+  wrap.innerHTML='<canvas id="langScoreChart"></canvas>';
+  const labels=data.slice(0,10).reverse().map((e,i)=>`Sesi ${i+1}`);
+  const scores=data.slice(0,10).reverse().map(e=>e.score);
+  const color=op==='id2en'?'#2dd4bf':'#ff9a3c';
+  if(langChartInst)langChartInst.destroy();
+  langChartInst=new Chart(document.getElementById('langScoreChart'),{
+    type:'line',
+    data:{labels,datasets:[{label:'Skor',data:scores,borderColor:color,backgroundColor:color+'33',tension:0.4,fill:true,pointBackgroundColor:color,pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:'#7a92b0',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'}},x:{ticks:{color:'#7a92b0',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'}}}}
+  });
+}
+</script>
+</body>
+</html>
