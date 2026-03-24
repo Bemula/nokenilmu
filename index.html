@@ -13,25 +13,59 @@
 <title>NokenIlmu</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-  const firebaseConfig = {
-    apiKey: "AIzaSyCg8TEh7O0YL9MMjFZfa6io8zADtoMo8Vc",
-    authDomain: "mathblast-451d5.firebaseapp.com",
-    projectId: "mathblast-451d5",
-    storageBucket: "mathblast-451d5.firebasestorage.app",
-    messagingSenderId: "36969246186",
-    appId: "1:36969246186:web:8c254b552a3072edfb1693"
-  };
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  // Enable offline persistence so app works even with slow connection
-  enableIndexedDbPersistence(db).catch(()=>{});
-  window._db=db; window._doc=doc; window._getDoc=getDoc;
-  window._setDoc=setDoc; window._collection=collection;
-  window._getDocs=getDocs; window._deleteDoc=deleteDoc;
-  window.dispatchEvent(new Event('firebase-ready'));
+<script>
+// ── FIREBASE REST API — no heavy SDK, direct HTTP calls ──
+const FB_PROJECT='mathblast-451d5';
+const FB_KEY='AIzaSyCg8TEh7O0YL9MMjFZfa6io8zADtoMo8Vc';
+const FB_BASE=`https://firestore.googleapis.com/v1/projects/${FB_PROJECT}/databases/(default)/documents`;
+
+// Convert Firestore REST response to plain object
+function fbParse(doc){
+  if(!doc||!doc.fields)return null;
+  const obj={};
+  for(const[k,v]of Object.entries(doc.fields)){
+    if(v.stringValue!==undefined)obj[k]=v.stringValue;
+    else if(v.integerValue!==undefined)obj[k]=parseInt(v.integerValue);
+    else if(v.booleanValue!==undefined)obj[k]=v.booleanValue;
+    else if(v.arrayValue)obj[k]=(v.arrayValue.values||[]).map(fbParse);
+    else if(v.mapValue)obj[k]=fbParse(v.mapValue);
+    else obj[k]=null;
+  }
+  return obj;
+}
+
+// Convert plain object to Firestore REST format
+function fbEncode(obj){
+  const fields={};
+  for(const[k,v]of Object.entries(obj)){
+    if(typeof v==='string')fields[k]={stringValue:v};
+    else if(typeof v==='number')fields[k]={integerValue:String(v)};
+    else if(typeof v==='boolean')fields[k]={booleanValue:v};
+    else if(Array.isArray(v))fields[k]={arrayValue:{values:v.map(item=>({mapValue:{fields:fbEncode(item||{}).fields}}))}};
+    else if(v&&typeof v==='object')fields[k]={mapValue:{fields:fbEncode(v).fields}};
+    else fields[k]={stringValue:String(v||'')};
+  }
+  return{fields};
+}
+
+const FB_TIMEOUT=5000; // 5 second timeout
+
+async function fbRest(path,method='GET',body=null){
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),FB_TIMEOUT);
+  try{
+    const opts={method,signal:ctrl.signal,headers:{'Content-Type':'application/json'}};
+    if(body)opts.body=JSON.stringify(fbEncode(body));
+    const url=`${FB_BASE}/${path}?key=${FB_KEY}`;
+    const r=await fetch(url,opts);
+    clearTimeout(timer);
+    if(!r.ok)return null;
+    return await r.json();
+  }catch(e){clearTimeout(timer);return null;}
+}
+
+window._fbReady=true;
+window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <style>
 :root{
@@ -1162,7 +1196,7 @@ document.getElementById('installBtn').addEventListener('click',async()=>{if(!def
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
 
 // ── Firebase ─────────────────────────────────────────────
-let db,_doc,_getDoc,_setDoc,_collection,_getDocs,_deleteDoc;
+// Using REST API — no SDK needed
 
 // ── Screen nav ───────────────────────────────────────────
 function showScreen(id){
@@ -1181,128 +1215,117 @@ function setRole(r){
   document.getElementById('roleTeacher').className='role-btn'+(r==='teacher'?' active-teacher':'');
 }
 
-// ── LOCAL CACHE — all reads hit localStorage first, Firebase syncs in background ──
-const CACHE_STUDENTS='nk_students_cache';
-const CACHE_TEACHERS='nk_teachers_cache';
-const CACHE_TTL=24*60*60*1000; // 24 hours
+// ── LOCAL CACHE + REST SYNC ───────────────────────────────
+const CACHE_STUDENTS='nk_students_v2';
+const CACHE_TEACHERS='nk_teachers_v2';
 
-function cacheGet(key){try{const d=JSON.parse(localStorage.getItem(key)||'null');return d;}catch(e){return null;}}
-function cacheSet(key,data){try{localStorage.setItem(key,JSON.stringify({data,ts:Date.now()}));}catch(e){}}
-
-// Get single student — local cache first, then Firebase
-async function fbGet(id){
-  const cache=cacheGet(CACHE_STUDENTS);
-  if(cache&&cache.data&&cache.data[id]) return cache.data[id];
-  // Not in cache — try Firebase
-  if(!db) return null;
-  try{
-    const d=await _getDoc(_doc(db,'students',id));
-    const result=d.exists()?d.data():null;
-    if(result){
-      // Update cache
-      const all=cache&&cache.data?{...cache.data}:{};
-      all[id]=result;
-      cacheSet(CACHE_STUDENTS,all);
-    }
-    return result;
-  }catch(e){return null;}
+function cacheGet(key){
+  try{return JSON.parse(localStorage.getItem(key)||'null');}catch(e){return null;}
+}
+function cacheSet(key,data){
+  try{localStorage.setItem(key,JSON.stringify(data));}catch(e){}
 }
 
-// Save student — localStorage immediately, Firebase in background
+// ── STUDENT CRUD ──────────────────────────────────────────
+async function fbGet(id){
+  // 1. Check local cache first — instant
+  const cache=cacheGet(CACHE_STUDENTS)||{};
+  if(cache[id]) return cache[id];
+  // 2. Try REST API
+  try{
+    const r=await fbRest(`students/${id}`);
+    if(r&&r.fields){
+      const data=fbParse(r);
+      cache[id]=data;
+      cacheSet(CACHE_STUDENTS,cache);
+      return data;
+    }
+  }catch(e){}
+  return null;
+}
+
 async function fbSet(id,data){
   // Save to cache instantly
-  const cache=cacheGet(CACHE_STUDENTS);
-  const all=cache&&cache.data?{...cache.data}:{};
-  all[id]=data;
-  cacheSet(CACHE_STUDENTS,all);
-  // Sync to Firebase in background
-  if(db) _setDoc(_doc(db,'students',id),data).catch(()=>{});
+  const cache=cacheGet(CACHE_STUDENTS)||{};
+  cache[id]=data;
+  cacheSet(CACHE_STUDENTS,cache);
+  // Sync to Firestore in background via REST PATCH
+  fbRest(`students/${id}`,'PATCH',data).catch(()=>{});
 }
 
-// Get all students — local cache first
 async function fbGetAll(){
-  const cache=cacheGet(CACHE_STUDENTS);
-  if(cache&&cache.data&&Object.keys(cache.data).length>0){
-    // Return cache immediately, refresh Firebase in background
-    if(db) syncFromFirebase();
-    return cache.data;
+  // Return cache immediately if available
+  const cache=cacheGet(CACHE_STUDENTS)||{};
+  if(Object.keys(cache).length>0){
+    // Refresh in background
+    refreshStudentsCache();
+    return cache;
   }
-  // No cache — must wait for Firebase
-  if(!db) return {};
-  try{
-    const snap=await _getDocs(_collection(db,'students'));
-    const r={};
-    snap.forEach(d=>{r[d.id]=d.data();});
-    cacheSet(CACHE_STUDENTS,r);
-    return r;
-  }catch(e){return{};}
+  // First time — fetch from Firestore
+  return await refreshStudentsCache();
 }
 
-// Delete student
-async function fbDelete(id){
-  const cache=cacheGet(CACHE_STUDENTS);
-  if(cache&&cache.data){
-    delete cache.data[id];
-    cacheSet(CACHE_STUDENTS,cache.data);
-  }
-  if(db) _deleteDoc(_doc(db,'students',id)).catch(()=>{});
-}
-
-// Teacher helpers — same pattern
-async function fbGetTeacher(id){
-  const cache=cacheGet(CACHE_TEACHERS);
-  if(cache&&cache.data&&cache.data[id]) return cache.data[id];
-  if(!db) return null;
+async function refreshStudentsCache(){
   try{
-    const d=await _getDoc(_doc(db,'teachers',id));
-    const result=d.exists()?d.data():null;
-    if(result){
-      const all=cache&&cache.data?{...cache.data}:{};
-      all[id]=result;
-      cacheSet(CACHE_TEACHERS,all);
+    const r=await fbRest('students');
+    if(r&&r.documents){
+      const result={};
+      r.documents.forEach(doc=>{
+        const id=doc.name.split('/').pop();
+        result[id]=fbParse(doc);
+      });
+      cacheSet(CACHE_STUDENTS,result);
+      return result;
     }
-    return result;
-  }catch(e){return null;}
+  }catch(e){}
+  return cacheGet(CACHE_STUDENTS)||{};
+}
+
+async function fbDelete(id){
+  const cache=cacheGet(CACHE_STUDENTS)||{};
+  delete cache[id];
+  cacheSet(CACHE_STUDENTS,cache);
+  fbRest(`students/${id}`,'DELETE').catch(()=>{});
+}
+
+// ── TEACHER CRUD ──────────────────────────────────────────
+async function fbGetTeacher(id){
+  const cache=cacheGet(CACHE_TEACHERS)||{};
+  if(cache[id]) return cache[id];
+  try{
+    const r=await fbRest(`teachers/${id}`);
+    if(r&&r.fields){
+      const data=fbParse(r);
+      cache[id]=data;
+      cacheSet(CACHE_TEACHERS,cache);
+      return data;
+    }
+  }catch(e){}
+  return null;
 }
 
 async function fbSetTeacher(id,data){
-  const cache=cacheGet(CACHE_TEACHERS);
-  const all=cache&&cache.data?{...cache.data}:{};
-  all[id]=data;
-  cacheSet(CACHE_TEACHERS,all);
-  if(db) _setDoc(_doc(db,'teachers',id),data).catch(()=>{});
+  const cache=cacheGet(CACHE_TEACHERS)||{};
+  cache[id]=data;
+  cacheSet(CACHE_TEACHERS,cache);
+  fbRest(`teachers/${id}`,'PATCH',data).catch(()=>{});
 }
 
-// Background sync — pull latest from Firebase and update cache silently
-function syncFromFirebase(){
-  if(!db) return;
-  _getDocs(_collection(db,'students')).then(snap=>{
-    const r={};snap.forEach(d=>{r[d.id]=d.data();});
-    cacheSet(CACHE_STUDENTS,r);
-  }).catch(()=>{});
-  _getDocs(_collection(db,'teachers')).then(snap=>{
-    const r={};snap.forEach(d=>{r[d.id]=d.data();});
-    cacheSet(CACHE_TEACHERS,r);
-  }).catch(()=>{});
-}
+// ── FIREBASE READY ────────────────────────────────────────
+let db=true; // always "ready" — REST API, no SDK needed
 
-// When Firebase connects, sync immediately
 window.addEventListener('firebase-ready',()=>{
-  db=window._db;_doc=window._doc;_getDoc=window._getDoc;
-  _setDoc=window._setDoc;_collection=window._collection;
-  _getDocs=window._getDocs;_deleteDoc=window._deleteDoc;
   const b=document.getElementById('welcomeSyncBadge');
-  b.textContent='☁️ Siap masuk';b.className='sync-badge';
-  // Sync data in background silently
-  setTimeout(syncFromFirebase,1000);
+  if(b){b.textContent='☁️ Siap masuk';b.className='sync-badge';}
+  // Sync data silently in background
+  setTimeout(()=>{refreshStudentsCache();},500);
 });
-// Show ready after 2s regardless — don't block the user
 setTimeout(()=>{
   const b=document.getElementById('welcomeSyncBadge');
   if(b&&b.textContent.includes('Menghubungkan')){
     b.textContent='☁️ Siap masuk';b.className='sync-badge';
   }
-},2000);
+},1500);
 
 // ── Auth ─────────────────────────────────────────────────
 let currentUser=null;
