@@ -1060,6 +1060,20 @@ async function doTeacherLogin(){
   const errEl=document.getElementById('teacher-err');
   errEl.textContent='';
   if(!name||!pass){errEl.textContent='Isi nama dan password.';return;}
+
+  // Check cache first (instant)
+  const cache=cacheGet(CACHE_TEACHERS);
+  if(cache&&cache.data&&cache.data[name]){
+    const t=cache.data[name];
+    if(t.pass!==pass){errEl.textContent='Password salah.';return;}
+    currentTeacher={name:t.name,grade:t.grade,key:name};
+    document.getElementById('tl-name').value='';
+    document.getElementById('tl-pass').value='';
+    enterDashboard();
+    return;
+  }
+
+  // Not in cache — try Firebase
   if(!db){errEl.textContent='Koneksi belum siap, coba lagi.';return;}
   errEl.textContent='Mengecek...';
   try{
@@ -1149,20 +1163,6 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('./service-work
 
 // ── Firebase ─────────────────────────────────────────────
 let db,_doc,_getDoc,_setDoc,_collection,_getDocs,_deleteDoc;
-window.addEventListener('firebase-ready',()=>{
-  db=window._db;_doc=window._doc;_getDoc=window._getDoc;
-  _setDoc=window._setDoc;_collection=window._collection;
-  _getDocs=window._getDocs;_deleteDoc=window._deleteDoc;
-  const b=document.getElementById('welcomeSyncBadge');
-  b.textContent='☁️ Siap masuk';b.className='sync-badge';
-});
-// Don't block login — show ready after 3s regardless
-setTimeout(()=>{
-  const b=document.getElementById('welcomeSyncBadge');
-  if(b&&b.textContent.includes('Menghubungkan')){
-    b.textContent='☁️ Siap masuk';b.className='sync-badge';
-  }
-},3000);
 
 // ── Screen nav ───────────────────────────────────────────
 function showScreen(id){
@@ -1181,13 +1181,128 @@ function setRole(r){
   document.getElementById('roleTeacher').className='role-btn'+(r==='teacher'?' active-teacher':'');
 }
 
-// ── Firebase helpers ─────────────────────────────────────
-async function fbGet(key){try{const d=await _getDoc(_doc(db,'students',key));return d.exists()?d.data():null;}catch(e){return null;}}
-async function fbSet(key,data){try{await _setDoc(_doc(db,'students',key),data);}catch(e){console.error(e);}}
-async function fbGetAll(){try{const snap=await _getDocs(_collection(db,'students'));const r={};snap.forEach(d=>{r[d.id]=d.data();});return r;}catch(e){return{};}}
-async function fbDelete(key){try{await _deleteDoc(_doc(db,'students',key));}catch(e){console.error(e);}}
-async function fbGetTeacher(key){try{const d=await _getDoc(_doc(db,'teachers',key));return d.exists()?d.data():null;}catch(e){return null;}}
-async function fbSetTeacher(key,data){try{await _setDoc(_doc(db,'teachers',key),data);}catch(e){console.error(e);}}
+// ── LOCAL CACHE — all reads hit localStorage first, Firebase syncs in background ──
+const CACHE_STUDENTS='nk_students_cache';
+const CACHE_TEACHERS='nk_teachers_cache';
+const CACHE_TTL=24*60*60*1000; // 24 hours
+
+function cacheGet(key){try{const d=JSON.parse(localStorage.getItem(key)||'null');return d;}catch(e){return null;}}
+function cacheSet(key,data){try{localStorage.setItem(key,JSON.stringify({data,ts:Date.now()}));}catch(e){}}
+
+// Get single student — local cache first, then Firebase
+async function fbGet(id){
+  const cache=cacheGet(CACHE_STUDENTS);
+  if(cache&&cache.data&&cache.data[id]) return cache.data[id];
+  // Not in cache — try Firebase
+  if(!db) return null;
+  try{
+    const d=await _getDoc(_doc(db,'students',id));
+    const result=d.exists()?d.data():null;
+    if(result){
+      // Update cache
+      const all=cache&&cache.data?{...cache.data}:{};
+      all[id]=result;
+      cacheSet(CACHE_STUDENTS,all);
+    }
+    return result;
+  }catch(e){return null;}
+}
+
+// Save student — localStorage immediately, Firebase in background
+async function fbSet(id,data){
+  // Save to cache instantly
+  const cache=cacheGet(CACHE_STUDENTS);
+  const all=cache&&cache.data?{...cache.data}:{};
+  all[id]=data;
+  cacheSet(CACHE_STUDENTS,all);
+  // Sync to Firebase in background
+  if(db) _setDoc(_doc(db,'students',id),data).catch(()=>{});
+}
+
+// Get all students — local cache first
+async function fbGetAll(){
+  const cache=cacheGet(CACHE_STUDENTS);
+  if(cache&&cache.data&&Object.keys(cache.data).length>0){
+    // Return cache immediately, refresh Firebase in background
+    if(db) syncFromFirebase();
+    return cache.data;
+  }
+  // No cache — must wait for Firebase
+  if(!db) return {};
+  try{
+    const snap=await _getDocs(_collection(db,'students'));
+    const r={};
+    snap.forEach(d=>{r[d.id]=d.data();});
+    cacheSet(CACHE_STUDENTS,r);
+    return r;
+  }catch(e){return{};}
+}
+
+// Delete student
+async function fbDelete(id){
+  const cache=cacheGet(CACHE_STUDENTS);
+  if(cache&&cache.data){
+    delete cache.data[id];
+    cacheSet(CACHE_STUDENTS,cache.data);
+  }
+  if(db) _deleteDoc(_doc(db,'students',id)).catch(()=>{});
+}
+
+// Teacher helpers — same pattern
+async function fbGetTeacher(id){
+  const cache=cacheGet(CACHE_TEACHERS);
+  if(cache&&cache.data&&cache.data[id]) return cache.data[id];
+  if(!db) return null;
+  try{
+    const d=await _getDoc(_doc(db,'teachers',id));
+    const result=d.exists()?d.data():null;
+    if(result){
+      const all=cache&&cache.data?{...cache.data}:{};
+      all[id]=result;
+      cacheSet(CACHE_TEACHERS,all);
+    }
+    return result;
+  }catch(e){return null;}
+}
+
+async function fbSetTeacher(id,data){
+  const cache=cacheGet(CACHE_TEACHERS);
+  const all=cache&&cache.data?{...cache.data}:{};
+  all[id]=data;
+  cacheSet(CACHE_TEACHERS,all);
+  if(db) _setDoc(_doc(db,'teachers',id),data).catch(()=>{});
+}
+
+// Background sync — pull latest from Firebase and update cache silently
+function syncFromFirebase(){
+  if(!db) return;
+  _getDocs(_collection(db,'students')).then(snap=>{
+    const r={};snap.forEach(d=>{r[d.id]=d.data();});
+    cacheSet(CACHE_STUDENTS,r);
+  }).catch(()=>{});
+  _getDocs(_collection(db,'teachers')).then(snap=>{
+    const r={};snap.forEach(d=>{r[d.id]=d.data();});
+    cacheSet(CACHE_TEACHERS,r);
+  }).catch(()=>{});
+}
+
+// When Firebase connects, sync immediately
+window.addEventListener('firebase-ready',()=>{
+  db=window._db;_doc=window._doc;_getDoc=window._getDoc;
+  _setDoc=window._setDoc;_collection=window._collection;
+  _getDocs=window._getDocs;_deleteDoc=window._deleteDoc;
+  const b=document.getElementById('welcomeSyncBadge');
+  b.textContent='☁️ Siap masuk';b.className='sync-badge';
+  // Sync data in background silently
+  setTimeout(syncFromFirebase,1000);
+});
+// Show ready after 2s regardless — don't block the user
+setTimeout(()=>{
+  const b=document.getElementById('welcomeSyncBadge');
+  if(b&&b.textContent.includes('Menghubungkan')){
+    b.textContent='☁️ Siap masuk';b.className='sync-badge';
+  }
+},2000);
 
 // ── Auth ─────────────────────────────────────────────────
 let currentUser=null;
@@ -1198,7 +1313,7 @@ async function doLogin(){
   errEl.textContent='';
   if(!name||!pass){errEl.textContent='Isi nama dan password.';return;}
 
-  // Teacher flow — go directly to teacher dashboard
+  // Teacher flow
   if(selectedRole==='teacher'){
     if(pass!==getTeacherPass()){errEl.textContent='Password guru salah.';return;}
     document.getElementById('login-name').value='';
@@ -1207,23 +1322,41 @@ async function doLogin(){
     return;
   }
 
-  // Student flow — check Firebase is ready
-  if(!db){errEl.textContent='Koneksi belum siap, coba lagi sebentar.';return;}
-
+  // Student flow — check cache first (instant), then Firebase
+  const key=name.toLowerCase();
   errEl.textContent='Mengecek...';
+
+  // Try local cache first
+  const cache=cacheGet(CACHE_STUDENTS);
+  if(cache&&cache.data&&cache.data[key]){
+    const s=cache.data[key];
+    if(s.pass!==pass){errEl.textContent='Password salah.';return;}
+    loginSuccess(key,s);
+    return;
+  }
+
+  // Not in cache — try Firebase (first time or cache cleared)
+  if(!db){
+    errEl.textContent='Belum terhubung ke server. Tunggu sebentar dan coba lagi.';
+    return;
+  }
   try{
-    const s=await fbGet(name.toLowerCase());
+    const s=await fbGet(key);
     if(!s){errEl.textContent='Nama tidak ditemukan. Tanya guru kamu.';return;}
     if(s.pass!==pass){errEl.textContent='Password salah.';return;}
-    currentUser=name.toLowerCase();
-    document.getElementById('login-name').value='';
-    document.getElementById('login-pass').value='';
-    document.getElementById('subjectGreeting').textContent=s.name;
-    errEl.textContent='';
-    showScreen('screen-subject');
+    loginSuccess(key,s);
   }catch(e){
     errEl.textContent='Gagal terhubung. Periksa koneksi internet.';
   }
+}
+
+function loginSuccess(key,s){
+  currentUser=key;
+  document.getElementById('login-name').value='';
+  document.getElementById('login-pass').value='';
+  document.getElementById('login-err').textContent='';
+  document.getElementById('subjectGreeting').textContent=s.name;
+  showScreen('screen-subject');
 }
 function doLogout(){clearInterval(mathTimer);clearInterval(langTimer);gameActive=false;langGameActive=false;currentUser=null;currentTeacher=null;showScreen('screen-welcome');}
 
