@@ -15,7 +15,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
   const firebaseConfig = {
     apiKey: "AIzaSyCg8TEh7O0YL9MMjFZfa6io8zADtoMo8Vc",
     authDomain: "mathblast-451d5.firebaseapp.com",
@@ -26,6 +26,8 @@
   };
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  // Enable offline persistence so app works even with slow connection
+  enableIndexedDbPersistence(db).catch(()=>{});
   window._db=db; window._doc=doc; window._getDoc=getDoc;
   window._setDoc=setDoc; window._collection=collection;
   window._getDocs=getDocs; window._deleteDoc=deleteDoc;
@@ -1154,6 +1156,13 @@ window.addEventListener('firebase-ready',()=>{
   const b=document.getElementById('welcomeSyncBadge');
   b.textContent='☁️ Siap masuk';b.className='sync-badge';
 });
+// Don't block login — show ready after 3s regardless
+setTimeout(()=>{
+  const b=document.getElementById('welcomeSyncBadge');
+  if(b&&b.textContent.includes('Menghubungkan')){
+    b.textContent='☁️ Siap masuk';b.className='sync-badge';
+  }
+},3000);
 
 // ── Screen nav ───────────────────────────────────────────
 function showScreen(id){
